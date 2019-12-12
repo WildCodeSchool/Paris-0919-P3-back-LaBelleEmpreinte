@@ -1,5 +1,5 @@
 const express = require ('express')
-const bodyparser = require ('body-parser')
+const bodyParser = require ('body-parser')
 const morgan = require('morgan')
 const router = require('./routes/index')
 const connection = require ('./conf')
@@ -9,6 +9,7 @@ const app = express()
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: true }))
 app.use(morgan('dev'))
+app.use("/user", router.user)
 
 
 app.listen(port, err => {

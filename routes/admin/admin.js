@@ -14,20 +14,59 @@ router.get('/', (req, res) => {
     })
     }
 )
-
-// post des données dans les input dans un tuple de la table article
+/////////////// créer un article informatif /////////////////
+// post des données dans les input dans un tuple de la table article     ///  OK
 router.post('/articles', (req, res) => {
     const postArticles = req.body
     connection.query("INSERT INTO articles SET ? ", postArticles, (err, results) => {
         if (err) {
             res.status(500).send("l'aticle n'a pas pu être créé")
         } else {
-            res.json(results)
+            res.status(200).send('article créé')
         }
     })
     }
 )
 
+
+ ////////////// afficher les articles informatifs ///////////////           à faire voir avec Pauline et Tracy
+// router.get('/articles_liste', (req, res) => {
+//     connection.query('SELECT id, titres, publication FROM articles WHERE ',, (err, results) => {
+//         if (err) {
+//             res.status(500).send("les articles n'ont pas pu être trouvés")
+//         } else {
+//             res.status(200).json(results)
+//         }
+//     })
+//     }
+// )
+
+
+//////////////  modifier un article informatif ///////////////              OK
+router.get('/articles_maj/:id', (req, res) => {
+    const article_id = req.params.id
+    connection.query('SELECT * FROM articles WHERE id = ?', article_id, (err, results) => {
+        if (err) {
+            res.status(500).send("les articles n'ont pas pu être trouvés")
+        } else {
+            res.status(200).json(results)
+        }
+    })
+    }
+)
+
+router.put('/articles_maj/:id', (req, res) => {
+    const putArticles = req.body
+    const article_id = req.params.id
+    connection.query("UPDATE articles SET ? WHERE id = ?", putArticles, article_id, (err, results) => {
+        if (err) {
+            res.status(500).send("l'aticle n'a pas pu être créé")
+        } else {
+            res.status(200).send('article créé')
+        }
+    })
+    }
+)
 
 
 

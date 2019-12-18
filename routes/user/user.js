@@ -49,7 +49,6 @@ router.get('/objets', (req, res) => {
 				}
 			})
 		};
-
 	})
 })
 
@@ -106,26 +105,19 @@ router.post('/filtre', (req, res) => {
 // récupérer le contenu d'un article grâce à son id //
 router.get('/article/:id', (req, res) => {
 
-	connection.query(`select articles.*, initiatives.name, initiatives.url, initiatives.adresse1, initiatives.logo from articles inner join articles_has_initiatives on articles_has_initiatives.articles_id = articles.id inner join initiatives on initiatives.id = articles_has_initiatives.initiatives_id where articles.id = ?`, req.params.id, (err, results) => {
+	connection.query(`SELECT * FROM articles WHERE id = ?`, req.params.id, (err, results) => {
 		if (err) {
 			res.status(500).send('Error retrieving article')
-		} else {
-			// ne pas récupérer d'article en double //
-			const filteredArticles = []
-			results.map(article => {
-				if (filteredArticles.length == 0) {
+		} else res.status(200).json(results)
+	})
+})
 
-					filteredArticles.push(article)
-				}
-
-				for (let i = 0; i < filteredArticles.length; ++i) {
-					if (req.params.id != filteredArticles[i].id) {
-						filteredArticles.push(article)
-					}
-				}
-			})
-			res.status(200).json(filteredArticles)
-		}
+// récupérer les initiatives associées à un article grâce à l'id de l'article //
+router.get('/initiatives/:id', (req, res) => {
+	connection.query(`SELECT initiatives.name, initiatives.url, initiatives.adresse1, initiatives.logo from articles INNER JOIN articles_has_initiatives ON articles_has_initiatives.articles_id = articles.id INNER JOIN initiatives ON initiatives.id = articles_has_initiatives.initiatives_id WHERE articles.id = ?`, req.params.id, (err, results) => {
+		if (err) {
+			res.status(500).send('Error retrieving article')
+		} else res.status(200).json(results)
 	})
 })
 

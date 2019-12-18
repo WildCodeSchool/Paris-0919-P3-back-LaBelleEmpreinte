@@ -3,208 +3,130 @@ const connection = require('../../conf')
 
 const router = express.Router()
 
-// Get besoins et types d'activités //
+// Get all besoins et types d'activités //
 router.get('/besoins', (req, res) => {
-
-    connection.query(`SELECT * FROM besoins`, (err, results) => {
-        if (err) {
-            res.status(500).send('Error retrieving besoins');
-        } else {
-            const besoins = {type: "besoins", results}
-            connection.query(`SELECT * FROM types_activites`, (err, results) => {
-                if (err) {
-                    res.status(500).send('Error retrieving types dactivites ');
-                } else {
-                   const typeActivites = {type: "types_activites", results}
-                   const filtreBesoin= [ besoins, typeActivites ]
-                    res.json(filtreBesoin);
-                }
-            });
-        }
-    });
+	connection.query(`SELECT * FROM besoins`, (err, results) => {
+		if (err) {
+			res.status(500).send('Error retrieving besoins');
+		} else {
+			const besoins = { type: "besoins", results }
+			connection.query(`SELECT * FROM types_activites`, (err, results) => {
+				if (err) {
+					res.status(500).send('Error retrieving types dactivites ');
+				} else {
+					const typeActivites = { type: "types_activites", results }
+					const filtreBesoin = [besoins, typeActivites]
+					res.json(filtreBesoin);
+				}
+			});
+		}
+	});
 
 })
 
 
-// Get Catégories d'objets //
+// Get all Catégories d'objets, catégories intermédiaires and objects //
 router.get('/objets', (req, res) => {
+	connection.query(`SELECT * FROM categories_objets`, (err, results) => {
+		if (err) {
+			res.status(500).send('Error retrieving categories_objets');
+		} else {
+			const catObjets = { type: "Catégories d'Objets", results }
+			connection.query(`SELECT * FROM categories_intermediaires`, (err, results) => {
+				if (err) {
+					res.status(500).send('Error retrieving categories_intermediaires ');
+				} else {
+					const catInter = { type: "Catégories intermédiaires", results }
+					connection.query(`SELECT * FROM objets`, (err, results) => {
+						if (err) {
+							res.status(500).send('Error retrieving objets');
+						} else {
+							const objets = { type: "Objets", results }
+							const filtreObjet = [catObjets, catInter, objets]
+							res.json(filtreObjet);
+						}
+					});
+				}
+			})
+		};
 
-    connection.query(`SELECT * FROM categories_objets`, (err, results) => {
-        if (err) {
-            res.status(500).send('Error retrieving categories_objets');
-        } else {
-            const catObjets = {type: "Catégories d'Objets", results}
-            connection.query(`SELECT * FROM categories_intermediaires`, (err, results) => {
-                if (err) {
-                    res.status(500).send('Error retrieving categories_intermediaires ');
-                } else {
-                    const catInter = {type: "Catégories intermédiaires", results}
-                    connection.query(`SELECT * FROM objets`, (err, results) => {
-                        if (err) {
-                            res.status(500).send('Error retrieving objets');
-                        } else {
-                            const objets = {type: "Objets", results}
-                            const filtreObjet= [ catObjets, catInter, objets  ]
-                            res.json(filtreObjet);
-                        }
-                    }); 
-                }
-        })
-    };
-
-})
+	})
 })
 
 // récupérer les articles selon les filtres sélectionnés //
 router.post('/filtre', (req, res) => {
-    const objectName = req.body.objectName
-    const besoinName = req.body.besoinName
-    console.log(req.body)
-    if(objectName && besoinName){
-        // Requête SQL pour récupérer l'ensemble des articles + à partir du 'WHERE' filtrer ces articles en fonction des filtres Object et Besoins passés dans le BODY//
-        connection.query(
-            `SELECT besoins.besoins, articles.titre, articles.image, articles.id, categories_objets.categorie, types_activites.types_activites, objets.name, categories_intermediaires.name FROM articles_has_categories_objets INNER JOIN categories_objets ON articles_has_categories_objets.categories_objets_id = categories_objets.id INNER JOIN articles on articles.id = articles_has_categories_objets.articles_id INNER JOIN articles_has_besoins INNER JOIN besoins ON articles_has_besoins.besoins_id = besoins.id INNER JOIN articles_has_types_activites ON articles_has_types_activites.articles_id = articles.id INNER JOIN types_activites ON types_activites.id = articles_has_types_activites.types_activites_id INNER JOIN articles_has_categories_intermediaires ON articles.id = articles_has_categories_intermediaires.articles_id INNER JOIN categories_intermediaires ON categories_intermediaires.id = articles_has_categories_intermediaires.categories_intermediaires_id INNER JOIN articles_has_objets ON articles.id = articles_has_objets.articles_id INNER JOIN objets ON objets.id = articles_has_objets.objets_id WHERE categories_objets.categorie = ? OR categories_intermediaires.name = ? OR objets.name = ? AND besoins.besoins = ? OR types_activites.types_activites = ? `,
-            
-           [objectName, objectName, objectName, besoinName, besoinName] ,
-           (err, results) => {
-             if (err) {
-                 console.log(err)
-               res
-                 .status(500)
-                 .send(`Erreur lors de la récupération de la liste des users avec les 2 filtres !!`)
-             } else {
-                 // Algorithme pour n'envoyer qu'une fois au front le même article // 
-                const filteredArticles = []
-                results.map(article => {
-                    if (filteredArticles.length == 0) {
-                        
-                        const newArticle = {
-                            titre : article.titre,
-                            image : article.image,
-                            articleId : article.id 
-                        }
-                        filteredArticles.push(newArticle)
-                    }
+	const objectName = req.body.objectName
+	const besoinName = req.body.besoinName
+	if (objectName && besoinName) {
+		// Récupérer le titre, l'image et l'id de chaque article qui répond aux deux filtres besoin et objet //
+		connection.query(
+			`SELECT articles.titre, articles.image, articles.id FROM articles_has_categories_objets INNER JOIN categories_objets ON articles_has_categories_objets.categories_objets_id = categories_objets.id INNER JOIN articles on articles.id = articles_has_categories_objets.articles_id INNER JOIN articles_has_besoins INNER JOIN besoins ON articles_has_besoins.besoins_id = besoins.id INNER JOIN articles_has_types_activites ON articles_has_types_activites.articles_id = articles.id INNER JOIN types_activites ON types_activites.id = articles_has_types_activites.types_activites_id INNER JOIN articles_has_categories_intermediaires ON articles.id = articles_has_categories_intermediaires.articles_id INNER JOIN categories_intermediaires ON categories_intermediaires.id = articles_has_categories_intermediaires.categories_intermediaires_id INNER JOIN articles_has_objets ON articles.id = articles_has_objets.articles_id INNER JOIN objets ON objets.id = articles_has_objets.objets_id WHERE categories_objets.categorie = ? OR categories_intermediaires.name = ? OR objets.name = ? AND besoins.besoins = ? OR types_activites.types_activites = ? GROUP BY articles.id`,
+			[objectName, objectName, objectName, besoinName, besoinName],
+			(err, results) => {
+				if (err) {
+					console.log(err)
+					res
+						.status(500)
+						.send(`Erreur lors de la récupération de la liste des users avec les 2 filtres !!`)
+				} else res.status(200).json(results)
+			}
+		)
+	}
+	else if (besoinName) {
+		// Requête SQL pour récupérer le titre, l'image et l'id de chaque article qui répond au filtre besoin //
+		connection.query(
+			`SELECT articles.titre, articles.image, articles.id FROM articles_has_categories_objets INNER JOIN categories_objets ON articles_has_categories_objets.categories_objets_id = categories_objets.id INNER JOIN articles on articles.id = articles_has_categories_objets.articles_id INNER JOIN articles_has_besoins INNER JOIN besoins ON articles_has_besoins.besoins_id = besoins.id INNER JOIN articles_has_types_activites ON articles_has_types_activites.articles_id = articles.id INNER JOIN types_activites ON types_activites.id = articles_has_types_activites.types_activites_id INNER JOIN articles_has_categories_intermediaires ON articles.id = articles_has_categories_intermediaires.articles_id INNER JOIN categories_intermediaires ON categories_intermediaires.id = articles_has_categories_intermediaires.categories_intermediaires_id INNER JOIN articles_has_objets ON articles.id = articles_has_objets.articles_id INNER JOIN objets ON objets.id = articles_has_objets.objets_id WHERE besoins.besoins = ? OR types_activites.types_activites = ? GROUP BY articles.id`,
+			[besoinName, besoinName],
+			(err, results) => {
+				if (err) {
+					res
+						.status(500)
+						.send(`Erreur lors de la récupération de la liste des users avec le filtre besoin/typesdactivites !!`)
+				} else res.status(200).json(results)
+			}
+		)
+	}
+	else if (objectName) {
+		// Requête SQL pour récupérer le titre, l'image et l'id de chaque article qui répond au filtre objet //
+		connection.query(
+			`SELECT articles.titre, articles.image, articles.id FROM articles_has_categories_objets INNER JOIN categories_objets ON articles_has_categories_objets.categories_objets_id = categories_objets.id INNER JOIN articles on articles.id = articles_has_categories_objets.articles_id INNER JOIN articles_has_besoins INNER JOIN besoins ON articles_has_besoins.besoins_id = besoins.id INNER JOIN articles_has_types_activites ON articles_has_types_activites.articles_id = articles.id INNER JOIN types_activites ON types_activites.id = articles_has_types_activites.types_activites_id INNER JOIN articles_has_categories_intermediaires ON articles.id = articles_has_categories_intermediaires.articles_id INNER JOIN categories_intermediaires ON categories_intermediaires.id = articles_has_categories_intermediaires.categories_intermediaires_id INNER JOIN articles_has_objets ON articles.id = articles_has_objets.articles_id INNER JOIN objets ON objets.id = articles_has_objets.objets_id WHERE categories_objets.categorie = ? OR categories_intermediaires.name = ? OR objets.name = ? GROUP BY articles.id`,
+			[objectName, objectName, objectName],
+			(err, results) => {
+				if (err) {
+					res
+						.status(500)
+						.send(`Erreur lors de la récupération de la liste des users avec le filtre objet/catint/catobjet !!`)
+				} else res.status(200).json(results)
+			}
+		)
+	}
 
-                    for (let i=0 ; i < filteredArticles.length ; ++i) {
-                        if (article.id != filteredArticles[i].articleId) {
-                            const newArticle = {
-                                titre : article.titre,
-                                image : article.image,
-                                articleId : article.id 
-                            }
-                            filteredArticles.push(newArticle)
-                        }
-                    }
-                })
-               res.status(200).json(filteredArticles)
-             }
-           }
-         )
-    }
-    else if(besoinName){
-        connection.query(
-            `SELECT besoins.besoins, articles.titre, articles.image, articles.id, categories_objets.categorie, types_activites.types_activites, objets.name, categories_intermediaires.name FROM articles_has_categories_objets INNER JOIN categories_objets ON articles_has_categories_objets.categories_objets_id = categories_objets.id INNER JOIN articles on articles.id = articles_has_categories_objets.articles_id INNER JOIN articles_has_besoins INNER JOIN besoins ON articles_has_besoins.besoins_id = besoins.id INNER JOIN articles_has_types_activites ON articles_has_types_activites.articles_id = articles.id INNER JOIN types_activites ON types_activites.id = articles_has_types_activites.types_activites_id INNER JOIN articles_has_categories_intermediaires ON articles.id = articles_has_categories_intermediaires.articles_id INNER JOIN categories_intermediaires ON categories_intermediaires.id = articles_has_categories_intermediaires.categories_intermediaires_id INNER JOIN articles_has_objets ON articles.id = articles_has_objets.articles_id INNER JOIN objets ON objets.id = articles_has_objets.objets_id WHERE besoins.besoins = ? OR types_activites.types_activites = ? ` ,
-           [besoinName, besoinName],
-           (err, results) => {
-             if (err) {
-               res
-                 .status(500)
-                 .send(`Erreur lors de la récupération de la liste des users avec le filtre besoin/typesdactivites !!`)
-             } else {
-                const filteredArticles = []
-                results.map(article => {
-                    if (filteredArticles.length == 0) {
-                        
-                        const newArticle = {
-                            titre : article.titre,
-                            image : article.image,
-                            articleId : article.id 
-                        }
-                        filteredArticles.push(newArticle)
-                    }
+})
 
-                    for (let i=0 ; i < filteredArticles.length ; ++i) {
-                        if (article.id != filteredArticles[i].articleId) {
-                            const newArticle = {
-                                titre : article.titre,
-                                image : article.image,
-                                articleId : article.id 
-                            }
-                            filteredArticles.push(newArticle)
-                        }
-                    }
-                })
-               res.status(200).json(filteredArticles)
-             }
-           }
-         )
-    }
-    else if(objectName){
-        connection.query(
-            `SELECT besoins.besoins, articles.titre, articles.image, articles.id, categories_objets.categorie, types_activites.types_activites, objets.name, categories_intermediaires.name FROM articles_has_categories_objets INNER JOIN categories_objets ON articles_has_categories_objets.categories_objets_id = categories_objets.id INNER JOIN articles on articles.id = articles_has_categories_objets.articles_id INNER JOIN articles_has_besoins INNER JOIN besoins ON articles_has_besoins.besoins_id = besoins.id INNER JOIN articles_has_types_activites ON articles_has_types_activites.articles_id = articles.id INNER JOIN types_activites ON types_activites.id = articles_has_types_activites.types_activites_id INNER JOIN articles_has_categories_intermediaires ON articles.id = articles_has_categories_intermediaires.articles_id INNER JOIN categories_intermediaires ON categories_intermediaires.id = articles_has_categories_intermediaires.categories_intermediaires_id INNER JOIN articles_has_objets ON articles.id = articles_has_objets.articles_id INNER JOIN objets ON objets.id = articles_has_objets.objets_id WHERE categories_objets.categorie = ? OR categories_intermediaires.name = ? OR objets.name = ?` ,
-           [objectName, objectName, objectName],
-           (err, results) => {
-             if (err) {
-               res
-                 .status(500)
-                 .send(`Erreur lors de la récupération de la liste des users avec le filtre objet/catint/catobjet !!`)
-             } else {
-                const filteredArticles = []
-                results.map(article => {
-                    if (filteredArticles.length == 0) {
-                        
-                        const newArticle = {
-                            titre : article.titre,
-                            image : article.image,
-                            articleId : article.id 
-                        }
-                        filteredArticles.push(newArticle)
-                    }
+// récupérer le contenu d'un article grâce à son id //
+router.get('/article/:id', (req, res) => {
 
-                    for (let i=0 ; i < filteredArticles.length ; ++i) {
-                        if (article.id != filteredArticles[i].articleId) {
-                            const newArticle = {
-                                titre : article.titre,
-                                image : article.image,
-                                articleId : article.id 
-                            }
-                            filteredArticles.push(newArticle)
-                        }
-                    }
-                })
-               res.status(200).json(filteredArticles)
-             }
-           }
-         )
-    }
-    
-  })
+	connection.query(`select articles.*, initiatives.name, initiatives.url, initiatives.adresse1, initiatives.logo from articles inner join articles_has_initiatives on articles_has_initiatives.articles_id = articles.id inner join initiatives on initiatives.id = articles_has_initiatives.initiatives_id where articles.id = ?`, req.params.id, (err, results) => {
+		if (err) {
+			res.status(500).send('Error retrieving article')
+		} else {
+			// ne pas récupérer d'article en double //
+			const filteredArticles = []
+			results.map(article => {
+				if (filteredArticles.length == 0) {
 
-  // récupérer le contenu d'un article grâce à son id //
-router.get('/article/:id' ,(req,res) =>{
+					filteredArticles.push(article)
+				}
 
-    connection.query(`select articles.*, initiatives.name, initiatives.url, initiatives.adresse1, initiatives.logo from articles inner join articles_has_initiatives on articles_has_initiatives.articles_id = articles.id inner join initiatives on initiatives.id = articles_has_initiatives.initiatives_id where articles.id = ?`, req.params.id , (err, results) => {
-        if (err) {
-            res.status(500).send('Error retrieving article')
-        } else {
-              // ne pas récupérer d'article en double //
-            const filteredArticles = []
-            results.map(article => {
-                if (filteredArticles.length == 0) {
-                   
-                    filteredArticles.push(article)
-                }
-
-                for (let i=0 ; i < filteredArticles.length ; ++i) {
-                    if (req.params.id != filteredArticles[i].id) {
-                        filteredArticles.push(article)
-                    }
-                }
-            })
-           res.status(200).json(filteredArticles)
-         }
-    } )
+				for (let i = 0; i < filteredArticles.length; ++i) {
+					if (req.params.id != filteredArticles[i].id) {
+						filteredArticles.push(article)
+					}
+				}
+			})
+			res.status(200).json(filteredArticles)
+		}
+	})
 })
 
 

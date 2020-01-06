@@ -17,27 +17,42 @@ router.get('/', (req, res) => {
 
 /////////////// créer un article informatif /////////////////
 // post des données dans les input dans un tuple de la table article  ///  OK // bouton créer
+
 router.post('/articles', (req, res) => {
     const postArticles = req.body.article
     const initiatives = req.body.initiatives
+    const besoins = req.body.besoins
+    const types_activites = req.body.types_activites
+    const categories_objets = req.body.categories_objets
+    const categories_intermediaires = req.body.categories_intermediaires
+    const objets = req.body.objets
     console.log(postArticles);
+
+    const tableBinding = ( tab1, tab2, tab2value, id ) => {
+        if ( tab2value.length != 0 ) {
+            tab2value.map( (elem, index) =>
+                connection.query(`INSERT INTO ${tab1}_has_${tab2} (${tab1}_id, ${tab2}_id) VALUES ( ${id}, ${elem})`, (err, results) => {
+                    if (err) {
+                        res.status(500).send("l'article n'a pas pu être créé step 2")
+                    }
+                }))
+        } 
+    }
     
     connection.query("INSERT INTO articles SET ? ", postArticles, (err, results) => {
         if (err) {
             res.status(500).send("l'article n'a pas pu être créé")
         } else {
             const articleId = results.insertId
-            initiatives.map( (initiative, index) =>
-                connection.query(`INSERT INTO articles_has_initiatives (articles_id, initiatives_id) VALUES ( ${articleId}, ${initiative})`, (err, results) => {
-                    if (err) {
-                        res.status(500).send("l'article n'a pas pu être créé step 2")
-                    } else {
-                        if (index === initiatives.length - 1) {
-                            res.status(200).send("youhouuuuu")
-                        }
-                    }
-                }))
+            tableBinding('articles', 'initiatives', initiatives, articleId)
+            tableBinding('articles', 'besoins', besoins, articleId)
+            tableBinding('articles', 'types_activites', types_activites, articleId)
+            tableBinding('articles', 'categories_objets', categories_objets, articleId)
+            tableBinding('articles', 'categories_intermediaires', categories_intermediaires, articleId)
+            tableBinding('articles', 'objets', objets, articleId)
+            res.status(200).send('article créé')
         }
+        
     })
     }
 )
@@ -45,7 +60,6 @@ router.post('/articles', (req, res) => {
 //// afficher les objets et besoins dans les dropdown menu correspondants
 // Get besoins et types d'activités //
 router.get('/besoins', (req, res) => {
-
     connection.query(`SELECT * FROM besoins`, (err, results) => {
         if (err) {
             res.status(500).send('Error retrieving besoins');
@@ -62,7 +76,6 @@ router.get('/besoins', (req, res) => {
             });
         }
     });
-
 })
 
 

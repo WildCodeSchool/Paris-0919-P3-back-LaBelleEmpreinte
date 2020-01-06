@@ -14,15 +14,36 @@ router.get('/', (req, res) => {
     })
     }
 )
+
 /////////////// créer un article informatif /////////////////
 // post des données dans les input dans un tuple de la table article  ///  OK // bouton créer
 router.post('/articles', (req, res) => {
-    const postArticles = req.body
+    const postArticles = req.body.article
+    const initiatives = req.body.initiatives
+    console.log(postArticles);
+    
     connection.query("INSERT INTO articles SET ? ", postArticles, (err, results) => {
         if (err) {
-            res.status(500).send("l'aticle n'a pas pu être créé")
+            res.status(500).send("l'article n'a pas pu être créé")
         } else {
-            res.status(200).send('article créé')
+            const articleId = results.insertId
+            console.log('result', results);
+            
+            initiatives.map( (initiative, index) =>
+                connection.query(`INSERT INTO articles_has_initiatives (articles_id, initiatives_id) VALUES ( ${articleId}, ${initiative})`, (err, results) => {
+                    if (err) {
+                        console.log('500');
+                        
+                        console.log(err.message);
+                        
+                        res.status(500).send("l'article n'a pas pu être créé step 2")
+                    } else {
+                        console.log('good');
+                        if (index === initiatives.length - 1) {
+                            res.status(200).send("youhouuuuu")
+                        }
+                    }
+                }))
         }
     })
     }
@@ -117,7 +138,6 @@ router.post('/filtre', (req, res) => {
 //     if(objectsList && besoinsList){
 //         connection.query(
 //             `SELECT besoins.besoins, articles.titre, articles.image, articles.id, categories_objets.categorie, types_activites.types_activites, objets.name, categories_intermediaires.name FROM articles_has_categories_objets INNER JOIN categories_objets ON articles_has_categories_objets.catego  a v q0 ries_objets_id = categories_objets.id INNER JOIN articles on articles.id = articles_has_categories_objets.articles_id INNER JOIN articles_has_besoins INNER JOIN besoins ON articles_has_besoins.besoins_id = besoins.id INNER JOIN articles_has_types_activites ON articles_has_types_activites.articles_id = articles.id INNER JOIN types_activites ON types_activites.id = articles_has_types_activites.types_activites_id INNER JOIN articles_has_categories_intermediaires ON articles.id = articles_has_categories_intermediaires.articles_id INNER JOIN categories_intermediaires ON categories_intermediaires.id = articles_has_categories_intermediaires.categories_intermediaires_id INNER JOIN articles_has_objets ON articles.id = articles_has_objets.articles_id INNER JOIN objets ON objets.id = articles_has_objets.objets_id WHERE categories_objets.categorie = ? OR categories_intermediaires.name = ? OR objets.name = ? AND besoins.besoins = ? OR types_activites.types_activites = ? `,
-            
 //             [objectId,objectId, objectId, besoinId, besoinId] ,
 //             (err, results) => {
 //                 if (err) {

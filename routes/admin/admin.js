@@ -27,18 +27,11 @@ router.post('/articles', (req, res) => {
             res.status(500).send("l'article n'a pas pu être créé")
         } else {
             const articleId = results.insertId
-            console.log('result', results);
-            
             initiatives.map( (initiative, index) =>
                 connection.query(`INSERT INTO articles_has_initiatives (articles_id, initiatives_id) VALUES ( ${articleId}, ${initiative})`, (err, results) => {
                     if (err) {
-                        console.log('500');
-                        
-                        console.log(err.message);
-                        
                         res.status(500).send("l'article n'a pas pu être créé step 2")
                     } else {
-                        console.log('good');
                         if (index === initiatives.length - 1) {
                             res.status(200).send("youhouuuuu")
                         }

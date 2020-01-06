@@ -32,7 +32,7 @@ router.post('/articles', (req, res) => {
         if ( tab2value.length != 0 ) {
             tab2value.map( (elem, index) =>
                 connection.query(`INSERT INTO ${tab1}_has_${tab2} (${tab1}_id, ${tab2}_id) VALUES ( ${id}, ${elem})`, (err, results) => {
-                    if (err) {
+                    if (err) { 
                         res.status(500).send("l'article n'a pas pu être créé step 2")
                     }
                 }))
@@ -50,7 +50,7 @@ router.post('/articles', (req, res) => {
             tableBinding('articles', 'categories_objets', categories_objets, articleId)
             tableBinding('articles', 'categories_intermediaires', categories_intermediaires, articleId)
             tableBinding('articles', 'objets', objets, articleId)
-            res.status(200).send('article créé')
+            res.status(200).send('article créé')  /// faut qu'on trouve un moyen de faire le res.status(200) après que les fonctions soient jouées
         }
         
     })

@@ -3,6 +3,25 @@ const connection = require('../../conf')
 
 const router = express.Router()
 
+
+////  Route test /////
+
+router.post('/test', (req, res) => {
+
+    connection.query(`INSERT INTO articles_has_initiatives VALUES( 14, 'z')`, function (error, results) {
+        if (error) {
+            return connection.rollback(function () {
+                res.status(500).send('ça bug');
+            });
+        }
+        else res.status(200).send('test de base fonctionne')
+
+    })
+})
+
+
+
+
 // route qui récupère les noms des tables et complète le dropdown menu avec
 router.get('/', (req, res) => {
     connection.query("SELECT table_name FROM information_schema.tables WHERE table_schema='la_belle_empreinte' AND table_name NOT LIKE '%has%';", (err, results) => {
@@ -12,8 +31,120 @@ router.get('/', (req, res) => {
             res.json(results)
         }
     })
-    }
+}
 )
+
+
+/////// ROUTE POUR CREER UN ARTICLE ET L'ASSOCIER AVEC LES TABLES INTERMEDIAIRES /////////
+router.post('/blabla', (req, res) => {
+    const postArticles = req.body.article
+    const initiatives = req.body.initiatives
+    const besoins = req.body.besoins
+    const types_activites = req.body.types_activites
+    const categories_objets = req.body.categories_objets
+    const categories_intermediaires = req.body.categories_intermediaires
+    const objets = req.body.objets
+    console.log(postArticles);
+
+    connection.beginTransaction(function (err) {
+        if (err) { throw err; }
+        connection.query("INSERT INTO articles SET ? ", postArticles, (error, results) => {
+            if (error) {
+                return connection.rollback(function () {
+                    res.send("erreur lors de l'ajout de l'article").status(500);
+                });
+            }
+            else {
+                articleId = results.insertId
+                if (initiatives.length != 0) {
+                    initiatives.map((elem, index) =>
+                        connection.query(`INSERT INTO articles_has_initiatives (articles_id, initiatives_id) VALUES ( ${articleId}, ${elem})`, (err, results) => {
+                            if (err) {
+                                return connection.rollback(function () {
+                                    res.send("erreur lors de l'ajout de l'initiative").status(500);
+                                });
+                            }
+                            else {
+                                if (besoins.length != 0) {
+                                    besoins.map((elem, index) =>
+                                        connection.query(`INSERT INTO articles_has_besoins (articles_id, besoins_id) VALUES ( ${articleId}, ${elem})`, (err, results) => {
+                                            if (err) {
+                                                return connection.rollback(function () {
+                                                    res.send("erreur lors de l'ajout du besoin").status(500);
+                                                });
+                                            }
+                                            else {
+                                                if (types_activites.length != 0) {
+                                                    types_activites.map((elem, index) =>
+                                                        connection.query(`INSERT INTO articles_has_types_activites (articles_id, types_activites_id) VALUES ( ${articleId}, ${elem})`, (err, results) => {
+                                                            if (err) {
+                                                                return connection.rollback(function () {
+                                                                    res.send("erreur lors de l'ajout du types_activites").status(500);
+                                                                });
+                                                            }
+                                                            else {
+                                                                if (categories_objets.length != 0) {
+                                                                    categories_objets.map((elem, index) =>
+                                                                        connection.query(`INSERT INTO articles_has_categories_objets (articles_id, categories_objets_id) VALUES ( ${articleId}, ${elem})`, (err, results) => {
+                                                                            if (err) {
+                                                                                return connection.rollback(function () {
+                                                                                    res.send("erreur lors de l'ajout de la categories_objets").status(500);
+                                                                                });
+                                                                            }
+                                                                            else {
+                                                                                if (categories_intermediaires.length != 0) {
+                                                                                    categories_intermediaires.map((elem, index) =>
+                                                                                        connection.query(`INSERT INTO articles_has_categories_intermediaires (articles_id, categories_intermediaires_id) VALUES ( ${articleId}, ${elem})`, (err, results) => {
+                                                                                            if (err) {
+                                                                                                return connection.rollback(function () {
+                                                                                                    res.send("erreur lors de l'ajout du categories_intermediaires").status(500);
+                                                                                                });
+                                                                                            }
+                                                                                            else {
+                                                                                                if (objets.length != 0) {
+                                                                                                    objets.map((elem, index) =>
+                                                                                                        connection.query(`INSERT INTO articles_has_objets (articles_id, objets_id) VALUES ( ${articleId}, ${elem})`, (err, results) => {
+                                                                                                            if (err) {
+                                                                                                                return connection.rollback(function () {
+                                                                                                                    res.send("erreur lors de l'ajout du objets").status(500);
+                                                                                                                });
+                                                                                                            }
+                                                                                                            else {
+                                                                                                                connection.commit(function (err) {
+                                                                                                                    if (err) {
+                                                                                                                        return connection.rollback(function () {
+                                                                                                                            throw err;
+                                                                                                                        });
+                                                                                                                    }
+                                                                                                                    res.send('giga query fonctionne').status(200)
+                                                                                                                });
+
+                                                                                                            }
+                                                                                                        }))
+                                                                                                }
+                                                                                            }
+
+
+                                                                                        }))
+                                                                                }
+                                                                            }
+                                                                        }))
+                                                                }
+                                                            }
+                                                        }))
+                                                }
+                                            }
+                                        }))
+                                }
+                            }
+                        }))
+                }
+            }
+        })
+    })
+})
+
+
 
 /////////////// créer un article informatif /////////////////
 // post des données dans les input dans un tuple de la table article  ///  OK // bouton créer
@@ -28,34 +159,132 @@ router.post('/articles', (req, res) => {
     const objets = req.body.objets
     console.log(postArticles);
 
-    const tableBinding = ( tab1, tab2, tab2value, id ) => {
-        if ( tab2value.length != 0 ) {
-            tab2value.map( (elem, index) =>
+    const tableBinding = (tab1, tab2, tab2value, id, lastTab) => {
+        if (tab2value.length != 0) {
+            tab2value.map((elem, index) =>
                 connection.query(`INSERT INTO ${tab1}_has_${tab2} (${tab1}_id, ${tab2}_id) VALUES ( ${id}, ${elem})`, (err, results) => {
-                    if (err) { 
-                        res.status(500).send("l'article n'a pas pu être créé step 2")
+                    if (err) {
+                        return connection.rollback(function () {
+                            res.send(`bug à l'ajout de ${elem} dans ${tab2}`).status(500)
+                        });
+                    }
+                    else if (lastTab === 1) {
+                        connection.commit(function (err) {
+                            if (err) {
+                                return connection.rollback(function () {
+                                    res.send('ça bug');
+                                });
+                            }
+                            res.send('success').status(200)  /// faut qu'on trouve un moyen de faire le res.status(200) après que les fonctions soient jouées
+                        });
                     }
                 }))
-        } 
-    }
-    
-    connection.query("INSERT INTO articles SET ? ", postArticles, (err, results) => {
-        if (err) {
-            res.status(500).send("l'article n'a pas pu être créé")
-        } else {
-            const articleId = results.insertId
-            tableBinding('articles', 'initiatives', initiatives, articleId)
-            tableBinding('articles', 'besoins', besoins, articleId)
-            tableBinding('articles', 'types_activites', types_activites, articleId)
-            tableBinding('articles', 'categories_objets', categories_objets, articleId)
-            tableBinding('articles', 'categories_intermediaires', categories_intermediaires, articleId)
-            tableBinding('articles', 'objets', objets, articleId)
-            res.status(200).send('article créé')  /// faut qu'on trouve un moyen de faire le res.status(200) après que les fonctions soient jouées
         }
-        
-    })
     }
-)
+
+    connection.beginTransaction(function (err) {
+        if (err) { throw err; }
+        connection.query("INSERT INTO articles SET ? ", postArticles, (err, results) => {
+            if (err) {
+                return connection.rollback(function () {
+                    throw err;
+                });
+            }
+            else {
+                const articleId = results.insertId
+
+                tableBinding('articles', 'initiatives', initiatives, articleId, 0)
+                tableBinding('articles', 'besoins', besoins, articleId, 0)
+                tableBinding('articles', 'types_activites', types_activites, articleId, 0)
+                tableBinding('articles', 'categories_objets', categories_objets, articleId, 0)
+                tableBinding('articles', 'categories_intermediaires', categories_intermediaires, articleId, 0)
+                tableBinding('articles', 'objets', objets, articleId, 1)
+
+
+            }
+        });
+    });
+});
+
+/////////////////////// ESSAI TRANSCATION AVEC DES COMMITS A CHAQUE ETAGE /////////////////////////////
+// connection.beginTransaction(function (err) {
+//     if (err) { throw err; }
+//     connection.query("INSERT INTO articles SET ? ", postArticles, (err, results) => {
+//         if (err) {
+//             return connection.rollback(function () {
+//                 throw err;
+//             });
+//         }
+//         const articleId = results.insertId
+//         tableBinding('articles', 'initiatives', initiatives, articleId)
+//         connection.commit(function (err) {
+//             if (err) {
+//                 return connection.rollback(function () {
+//                     throw err;
+//                 });
+//             }
+//             tableBinding('articles', 'besoins', besoins, articleId)
+//             connection.commit(function (err) {
+//                 if (err) {
+//                     return connection.rollback(function () {
+//                         throw err;
+//                     });
+//                 }
+//                 tableBinding('articles', 'types_activites', types_activites, articleId)
+//                 connection.commit(function (err) {
+//                     if (err) {
+//                         return connection.rollback(function () {
+//                             throw err;
+//                         });
+//                     }
+//                     tableBinding('articles', 'categories_objets', categories_objets, articleId)
+//                     connection.commit(function (err) {
+//                         if (err) {
+//                             return connection.rollback(function () {
+//                                 throw err;
+//                             });
+//                         }
+//                         tableBinding('articles', 'categories_intermediaires', categories_intermediaires, articleId)
+//                         connection.commit(function (err) {
+//                             if (err) {
+//                                 return connection.rollback(function () {
+//                                     throw err;
+//                                 });
+//                             }
+//                             tableBinding('articles', 'objets', objets, articleId)
+//                             connection.commit(function (err) {
+//                                 if (err) {
+//                                     return connection.rollback(function () {
+//                                         throw err;
+//                                     });
+//                                 }
+//                                 res.status(200).send('success')  /// faut qu'on trouve un moyen de faire le res.status(200) après que les fonctions soient jouées
+//                             });
+//                         });
+//                     });
+//                 });
+//             });
+//         });
+
+
+
+// connection.query("INSERT INTO articles SET ? ", postArticles, (err, results) => {
+//     if (err) {
+//         res.status(500).send("l'article n'a pas pu être créé")
+//     } else {
+//         const articleId = results.insertId
+//         tableBinding('articles', 'initiatives', initiatives, articleId)
+//         tableBinding('articles', 'besoins', besoins, articleId)
+//         tableBinding('articles', 'types_activites', types_activites, articleId)
+//         tableBinding('articles', 'categories_objets', categories_objets, articleId)
+//         tableBinding('articles', 'categories_intermediaires', categories_intermediaires, articleId)
+//         tableBinding('articles', 'objets', objets, articleId)
+//         res.status(200).send('article créé')  /// faut qu'on trouve un moyen de faire le res.status(200) après que les fonctions soient jouées
+//     }
+
+// })
+//     }
+// )
 
 //// afficher les objets et besoins dans les dropdown menu correspondants
 // Get besoins et types d'activités //
@@ -64,13 +293,13 @@ router.get('/besoins', (req, res) => {
         if (err) {
             res.status(500).send('Error retrieving besoins');
         } else {
-            const besoins = {type: "besoins", results}
+            const besoins = { type: "besoins", results }
             connection.query(`SELECT * FROM types_activites`, (err, results) => {
                 if (err) {
                     res.status(500).send('Error retrieving types dactivites ');
                 } else {
-                    const typeActivites = {type: "types_activites", results}
-                    const filtreBesoin= [ besoins, typeActivites ]
+                    const typeActivites = { type: "types_activites", results }
+                    const filtreBesoin = [besoins, typeActivites]
                     res.json(filtreBesoin);
                 }
             });
@@ -86,25 +315,25 @@ router.get('/objets', (req, res) => {
         if (err) {
             res.status(500).send('Error retrieving categories_objets');
         } else {
-            const catObjets = {type: "Catégories d'Objets", results}
+            const catObjets = { type: "Catégories d'Objets", results }
             connection.query(`SELECT * FROM categories_intermediaires`, (err, results) => {
                 if (err) {
                     res.status(500).send('Error retrieving categories_intermediaires ');
                 } else {
-                    const catInter = {type: "Catégories intermédiaires", results}
+                    const catInter = { type: "Catégories intermédiaires", results }
                     connection.query(`SELECT * FROM objets`, (err, results) => {
                         if (err) {
                             res.status(500).send('Error retrieving objets');
                         } else {
-                            const objets = {type: "Objets", results}
-                            const filtreObjet= [ catObjets, catInter, objets  ]
+                            const objets = { type: "Objets", results }
+                            const filtreObjet = [catObjets, catInter, objets]
                             res.json(filtreObjet);
                         }
-                    }); 
+                    });
                 }
-        })
-    };
-})
+            })
+        };
+    })
 })
 
 
@@ -136,10 +365,10 @@ router.post('/filtre', (req, res) => {
         }
     })
 })    // à supprimer quand on va uncomment
-    
-    
+
+
 //     objectsList.map(object => 
-        
+
 //         )
 //     if(objectsList && besoinsList){
 //         connection.query(
@@ -155,7 +384,7 @@ router.post('/filtre', (req, res) => {
 //                 const filteredArticles = []
 //                 results.map(article => {
 //                     if (filteredArticles.length == 0) {
-                        
+
 //                         const newArticle = {
 //                             titre : article.titre,
 //                             image : article.image,
@@ -193,7 +422,7 @@ router.post('/filtre', (req, res) => {
 //                 const filteredArticles = []
 //                 results.map(article => {
 //                     if (filteredArticles.length == 0) {
-                        
+
 //                         const newArticle = {
 //                             titre : article.titre,
 //                             image : article.image,
@@ -231,7 +460,7 @@ router.post('/filtre', (req, res) => {
 //                 const filteredArticles = []
 //                 results.map(article => {
 //                     if (filteredArticles.length == 0) {
-                        
+
 //                         const newArticle = {
 //                             titre : article.titre,
 //                             image : article.image,
@@ -258,7 +487,7 @@ router.post('/filtre', (req, res) => {
 //     }
 //   })
 
- ////////////// afficher les articles informatifs ///////////////           à voir avec Pauline et Tracy
+////////////// afficher les articles informatifs ///////////////           à voir avec Pauline et Tracy
 // router.get('/articles_liste', (req, res) => {
 //     connection.query('SELECT id, titres, publication FROM articles WHERE ',, (err, results) => {
 //         if (err) {
@@ -282,7 +511,7 @@ router.get('/articles_maj/:id', (req, res) => {
             res.status(200).json(results)
         }
     })
-    }
+}
 )
 
 // modifier un article informatif               OK
@@ -296,7 +525,7 @@ router.put('/articles_maj/:id', (req, res) => {
             res.status(200).send('article modifié')
         }
     })
-    }
+}
 )
 
 // supprimer un article informatif          OK
@@ -309,10 +538,10 @@ router.delete('/articles_maj/:id', (req, res) => {
             res.status(200).send('article supprimé')
         }
     })
-    }
+}
 )
 
- ////////////// afficher les initiatives responsables ///////////////            à voir avec Pauline et Tracy
+////////////// afficher les initiatives responsables ///////////////            à voir avec Pauline et Tracy
 //  router.get('/initiatives_liste', (req, res) => {
 //     connection.query('SELECT id, titres, publication FROM initiatives WHERE ',, (err, results) => {
 //         if (err) {
@@ -335,7 +564,7 @@ router.get('/initiatives_maj/:id', (req, res) => {
             res.status(200).json(results)
         }
     })
-    }
+}
 )
 
 // modifier une initiative responsable               OK
@@ -349,7 +578,7 @@ router.put('/initiatives_maj/:id', (req, res) => {
             res.status(200).send('initiative modifiée')
         }
     })
-    }
+}
 )
 
 // supprimer une initiative responsable          OK
@@ -362,7 +591,7 @@ router.delete('/initiatives_maj/:id', (req, res) => {
             res.status(200).send('initiative supprimée')
         }
     })
-    }
+}
 )
 
 

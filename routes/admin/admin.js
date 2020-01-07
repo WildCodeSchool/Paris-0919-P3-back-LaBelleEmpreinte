@@ -1,6 +1,5 @@
 const express = require('express')
 const connection = require('../../conf')
-
 const router = express.Router()
 
 // route qui récupère les noms des tables et complète le dropdown menu avec

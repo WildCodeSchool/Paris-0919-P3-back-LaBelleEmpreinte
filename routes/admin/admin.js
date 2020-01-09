@@ -180,9 +180,88 @@ router.get('/types_activites/:id', (req, res) => {
 
 /////////////// POST //////////////////
 
+/// Créer un engagement ///
+router.post('/engagements/create', (req, res) => {
+    const engagement = req.body
+    connection.query('INSERT INTO engagements SET ?', engagement, (err, results) => {
+        if (err) {
+            res.status(500).send("l'engagement n'a pas pu être créé")
+        } else {
+            res.status(200).json(results)
+        }
+    })
+}
+)
+
+/// Créer un categorie_objet ///
+router.post('/categories_objets/create', (req, res) => {
+    const categorie_objet = req.body
+    connection.query('INSERT INTO categories_objets SET ?', categorie_objet, (err, results) => {
+        if (err) {
+            res.status(500).send("l'categorie_objet n'a pas pu être créé")
+        } else {
+            res.status(200).json(results)
+        }
+    })
+}
+)
+
+/// Créer un categories_intermediaires ///
+router.post('/categories_intermediaires/create', (req, res) => {
+    const categories_intermediaire = req.body
+    connection.query('INSERT INTO categories_intermediaires SET ?', categories_intermediaire, (err, results) => {
+        if (err) {
+            res.status(500).send("l'categories_intermediaires n'a pas pu être créé")
+        } else {
+            res.status(200).json(results)
+        }
+    })
+}
+)
+
+/// Créer un objets ///
+router.post('/objets/create', (req, res) => {
+    const objets = req.body
+    connection.query('INSERT INTO objets SET ?', objets, (err, results) => {
+        if (err) {
+            res.status(500).send("l'objets n'a pas pu être créé")
+        } else {
+            res.status(200).json(results)
+        }
+    })
+}
+)
+
+/// Créer un besoins ///
+router.post('/besoins/create', (req, res) => {
+    const besoins = req.body
+    connection.query('INSERT INTO besoins SET ?', besoins, (err, results) => {
+        if (err) {
+            res.status(500).send("l'besoins n'a pas pu être créé")
+        } else {
+            res.status(200).json(results)
+        }
+    })
+}
+)
+
+/// Créer un types_activites ///
+router.post('/types_activites/create', (req, res) => {
+    const types_activites = req.body
+    connection.query('INSERT INTO types_activites SET ?', types_activites, (err, results) => {
+        if (err) {
+            res.status(500).send("l'types_activites n'a pas pu être créé")
+        } else {
+            res.status(200).json(results)
+        }
+    })
+}
+)
+
+
+
+
 ////// ARTICLE INFORMATIF ////////
-
-
 
 /// Récupérer la liste des initiatives //// 
 // EN PROGRES //
@@ -258,6 +337,95 @@ router.post('/articles/create', (req, res) => {
     })
 }
 )
+
+
+///////// PUT ///////////
+
+/// Modifier un engagements ///
+router.put('/engagements/modify', (req, res) => {
+	const engagements = req.body
+	console.log(engagements)
+    connection.query(`UPDATE engagements SET ? where id = ?`, [engagements, engagements.id],(err, results) => {
+        if (err) {
+            res.status(500).send("l'engagements n'a pas pu être modifié")
+        } else {
+            res.status(200).json(results)
+        }
+    })
+}
+)
+
+/// Modifier un categories_objets ///
+router.put('/categories_objets/modify', (req, res) => {
+	const categories_objets = req.body
+	console.log(categories_objets)
+    connection.query(`UPDATE categories_objets SET ? where id = ?`, [categories_objets, categories_objets.id],(err, results) => {
+        if (err) {
+            res.status(500).send("l'categories_objets n'a pas pu être modifié")
+        } else {
+            res.status(200).json(results)
+        }
+    })
+}
+)
+
+/// Modifier un categories_intermediaires ///
+router.put('/categories_intermediaires/modify', (req, res) => {
+	const categories_intermediaires = req.body
+	console.log(categories_intermediaires)
+    connection.query(`UPDATE categories_intermediaires SET ? where id = ?`, [categories_intermediaires, categories_intermediaires.id],(err, results) => {
+        if (err) {
+            res.status(500).send("l'categories_intermediaires n'a pas pu être modifié")
+        } else {
+            res.status(200).json(results)
+        }
+    })
+}
+)
+
+/// Modifier un objets ///
+router.put('/objets/modify', (req, res) => {
+	const objets = req.body
+	console.log(objets)
+    connection.query(`UPDATE objets SET ? where id = ?`, [objets, objets.id],(err, results) => {
+        if (err) {
+            res.status(500).send("l'objets n'a pas pu être modifié")
+        } else {
+            res.status(200).json(results)
+        }
+    })
+}
+)
+
+/// Modifier un besoins ///
+router.put('/besoins/modify', (req, res) => {
+	const besoins = req.body
+	console.log(besoins)
+    connection.query(`UPDATE besoins SET ? where id = ?`, [besoins, besoins.id],(err, results) => {
+        if (err) {
+            res.status(500).send("l'besoins n'a pas pu être modifié")
+        } else {
+            res.status(200).json(results)
+        }
+    })
+}
+)
+
+/// Modifier un types_activites ///
+router.put('/types_activites/modify', (req, res) => {
+	const types_activites = req.body
+	console.log(types_activites)
+    connection.query(`UPDATE types_activites SET ? where id = ?`, [types_activites, types_activites.id],(err, results) => {
+        if (err) {
+            res.status(500).send("l'types_activites n'a pas pu être modifié")
+        } else {
+            res.status(200).json(results)
+        }
+    })
+}
+)
+
+
 
 // modifier un article informatif               IL FAUT COMPLETER LES TABLES INTERMEDIAIRES
 router.put('/articles_maj/:id', (req, res) => {

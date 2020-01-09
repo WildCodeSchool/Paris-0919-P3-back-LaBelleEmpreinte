@@ -53,7 +53,7 @@ router.get('/objets', (req, res) => {
 })
 
 // récupérer les articles selon les filtres sélectionnés //
-router.post('/filtre', (req, res) => {
+router.post('/filtres/articles', (req, res) => {
 	const objectName = req.body.objectName
 	const besoinName = req.body.besoinName
 	if (objectName && besoinName) {

@@ -2,6 +2,8 @@ const express = require('express')
 const connection = require('../../conf')
 const router = express.Router()
 
+/////////////// GET ////////////////
+
 //// PAGE ACCUEIL ADMIN /// OK
 // route qui récupère les noms des tables et complète le dropdown menu avec
 router.get('/', (req, res) => {
@@ -14,6 +16,169 @@ router.get('/', (req, res) => {
     })
 }
 )
+
+//  page modifier une initiave responsable //
+// récupérer les infos de l'initiave sur laquelle on a cliqué dans la liste
+// IL FAUT AUSSSI GET LES TABLES INTERMEDIARES 
+router.get('/initiatives_maj/:id', (req, res) => {
+    const initiative_id = req.params.id
+    connection.query('SELECT * FROM initiatives WHERE id = ?', initiative_id, (err, results) => {
+        if (err) {
+            res.status(500).send("les initiatives n'ont pas pu être trouvés")
+        } else {
+            res.status(200).json(results)
+        }
+    })
+}
+)
+
+// page créer/modifier liste d'init et afficher engagements //
+// récupérer les engagements //
+router.get('/engagements', (req, res) => {
+    connection.query('SELECT * FROM engagements', (err, results) => {
+        if (err) {
+            res.status(500).send("les engagements n'ont pas pu être trouvés")
+        } else {
+            res.status(200).json(results)
+        }
+    })
+}
+)
+
+router.get('/engagements/:id', (req, res) => {
+    const engagement_id = req.params.id
+    connection.query('SELECT * FROM initiatives WHERE id = ?', engagement_id, (err, results) => {
+        if (err) {
+            res.status(500).send("l'engagement n'a pas pu être trouvé")
+        } else {
+            res.status(200).json(results)
+        }
+    })
+}
+)
+
+
+// Page afficher catégorie d'objets //
+router.get('/categories_objets', (req, res) => {
+    connection.query('SELECT * FROM categories_objets', (err, results) => {
+        if (err) {
+            res.status(500).send("les categories_objets n'ont pas pu être trouvés")
+        } else {
+            res.status(200).json(results)
+        }
+    })
+}
+)
+
+router.get('/categories_objets/:id', (req, res) => {
+    const categorie_objets_id = req.params.id
+    connection.query('SELECT * FROM initiatives WHERE id = ?', categorie_objets_id, (err, results) => {
+        if (err) {
+            res.status(500).send("la categorie d'objet n'a pas pu être trouvée")
+        } else {
+            res.status(200).json(results)
+        }
+    })
+}
+)
+
+// Page afficher categories_intermediaires //
+router.get('/categories_intermediaires', (req, res) => {
+    connection.query('SELECT * FROM categories_intermediaires', (err, results) => {
+        if (err) {
+            res.status(500).send("les categories_intermediaires n'ont pas pu être trouvés")
+        } else {
+            res.status(200).json(results)
+        }
+    })
+}
+)
+
+router.get('/categories_intermediaires/:id', (req, res) => {
+    const categorie_intermediaires_id = req.params.id
+    connection.query('SELECT * FROM initiatives WHERE id = ?', categorie_intermediaires_id, (err, results) => {
+        if (err) {
+            res.status(500).send("la categorie intermediaire n'a pas pu être trouvée")
+        } else {
+            res.status(200).json(results)
+        }
+    })
+}
+)
+
+// Page afficher objets //
+router.get('/objets', (req, res) => {
+    connection.query('SELECT * FROM objets', (err, results) => {
+        if (err) {
+            res.status(500).send("les objets n'ont pas pu être trouvés")
+        } else {
+            res.status(200).json(results)
+        }
+    })
+}
+)
+
+router.get('/objets/:id', (req, res) => {
+    const objet_id = req.params.id
+    connection.query('SELECT * FROM initiatives WHERE id = ?', objet_id, (err, results) => {
+        if (err) {
+            res.status(500).send("l'objet n'a pas pu être trouvé")
+        } else {
+            res.status(200).json(results)
+        }
+    })
+}
+)
+
+// Page afficher besoins //
+router.get('/besoins', (req, res) => {
+    connection.query('SELECT * FROM besoins', (err, results) => {
+        if (err) {
+            res.status(500).send("les besoins n'ont pas pu être trouvés")
+        } else {
+            res.status(200).json(results)
+        }
+    })
+}
+)
+
+router.get('/besoins/:id', (req, res) => {
+    const besoin_id = req.params.id
+    connection.query('SELECT * FROM initiatives WHERE id = ?', besoin_id, (err, results) => {
+        if (err) {
+            res.status(500).send("le besoin n'a pas pu être trouvé")
+        } else {
+            res.status(200).json(results)
+        }
+    })
+}
+)
+
+// Page afficher types_activites //
+router.get('/types_activites', (req, res) => {
+    connection.query('SELECT * FROM types_activites', (err, results) => {
+        if (err) {
+            res.status(500).send("les types_activites n'ont pas pu être trouvés")
+        } else {
+            res.status(200).json(results)
+        }
+    })
+}
+)
+
+router.get('/types_activites/:id', (req, res) => {
+    const type_activites_id = req.params.id
+    connection.query('SELECT * FROM initiatives WHERE id = ?', type_activites_id, (err, results) => {
+        if (err) {
+            res.status(500).send("le type d'activité n'a pas pu être trouvé")
+        } else {
+            res.status(200).json(results)
+        }
+    })
+}
+)
+
+/////////////// POST //////////////////
 
 ////// ARTICLE INFORMATIF ////////
 
@@ -121,20 +286,9 @@ router.delete('/articles_maj/:id', (req, res) => {
 }
 )
 
+
+
 //////////////  page modifier une initiave responsable /////////////// 
-// récupérer les infos de l'initiave sur laquelle on a cliqué dans la liste
-// IL FAUT AUSSSI GET LES TABLES INTERMEDIARES 
-router.get('/initiatives_maj/:id', (req, res) => {
-    const initiative_id = req.params.id
-    connection.query('SELECT * FROM initiatives WHERE id = ?', initiative_id, (err, results) => {
-        if (err) {
-            res.status(500).send("les initiatives n'ont pas pu être trouvés")
-        } else {
-            res.status(200).json(results)
-        }
-    })
-}
-)
 
 // modifier une initiative responsable        
 // IL FAUT MAJ LES TABLES INTERMEDIAIRES

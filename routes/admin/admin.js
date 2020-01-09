@@ -19,6 +19,8 @@ router.get('/', (req, res) => {
 
 //// afficher les objets et besoins dans les dropdown menu correspondants ///////////
 // Get besoins et types d'activités //
+// On va utiliser la route identique qui se trouve dans user //
+// A SUPPRIMER //
 router.get('/besoins', (req, res) => {
     connection.query(`SELECT * FROM besoins`, (err, results) => {
         if (err) {
@@ -40,6 +42,7 @@ router.get('/besoins', (req, res) => {
 
 
 // Get Catégories d'objets //
+// A SUPPRIMER //
 router.get('/objets', (req, res) => {
 
     connection.query(`SELECT * FROM categories_objets`, (err, results) => {
@@ -146,7 +149,6 @@ router.post('/articles/create', (req, res) => {
 
 
 //// selectioner les critères à asssocier
-// récupérer les articles selon les filtres sélectionnés //   // remplacer articles part initiatives et mettre des OR à la place des AND //
 router.post('/filtre', (req, res) => {
     // const objectsList = req.body.objectsList
     // const besoinsList = req.body.besoinsList
@@ -310,6 +312,7 @@ router.post('/filtre', (req, res) => {
 
 //////////////  modifier un article informatif ///////////////              OK
 // récupérer les infos de l'article sur lequel on a cliqué dans la liste
+// A SUPPRIMER //
 router.get('/articles_maj/:id', (req, res) => {
     const article_id = req.params.id
     connection.query('SELECT * FROM articles WHERE id = ?', article_id, (err, results) => {

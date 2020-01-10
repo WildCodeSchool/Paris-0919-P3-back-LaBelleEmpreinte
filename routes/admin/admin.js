@@ -441,18 +441,6 @@ router.put('/articles_maj/:id', (req, res) => {
 }
 )
 
-// supprimer un article informatif          IL FAUT SUPPRIMER LES DONNES DANS LES TABLES INTERMEDIAIRES ASSOCIEES
-router.delete('/articles_maj/:id', (req, res) => {
-    const article_id = req.params.id
-    connection.query("DELETE FROM articles WHERE id = ?", article_id, (err, results) => {
-        if (err) {
-            res.status(500).send("l'aticle n'a pas pu être supprimé")
-        } else {
-            res.status(200).send('article supprimé')
-        }
-    })
-}
-)
 
 
 
@@ -473,19 +461,115 @@ router.put('/initiatives_maj/:id', (req, res) => {
 }
 )
 
-// supprimer une initiative responsable         
-// IL FAUT SUPPRIMER LES DONNES DANS LES TABLES INTERMEDIAIRES ASSOCIEES
-router.delete('/initiatives_maj/:id', (req, res) => {
-    const initiative_id = req.params.id
-    connection.query("DELETE FROM initiatives WHERE id = ?", initiative_id, (err, results) => {
+
+
+
+////// DELETE /////////
+
+// supprimer un article informatif 
+router.delete('/articles_maj/:id', (req, res) => {
+    const article_id = req.params.id
+    connection.query("DELETE FROM articles WHERE id = ?", article_id, (err, results) => {
         if (err) {
-            res.status(500).send("l'initiative n'a pas pu être supprimée")
+            res.status(500).send("l'aticle n'a pas pu être supprimé")
         } else {
-            res.status(200).send('initiative supprimée')
+            res.status(200).send('article supprimé')
         }
     })
 }
 )
+
+// supprimer une initiatives responsable         
+router.delete('/initiatives_maj/:id', (req, res) => {
+    const initiatives_id = req.params.id
+    connection.query("DELETE FROM initiatives WHERE id = ?", initiatives_id, (err, results) => {
+        if (err) {
+            res.status(500).send("l'initiatives n'a pas pu être supprimée")
+        } else {
+            res.status(200).send('initiatives supprimée')
+        }
+    })
+}
+)
+
+// supprimer une engagements responsable         
+router.delete('/engagements/:id', (req, res) => {
+    const engagements_id = req.params.id
+    connection.query("DELETE FROM engagements WHERE id = ?", engagements_id, (err, results) => {
+        if (err) {
+            res.status(500).send("l'engagements n'a pas pu être supprimée")
+        } else {
+            res.status(200).send('engagements supprimée')
+        }
+    })
+}
+)
+
+// supprimer une categories_objets responsable         
+router.delete('/categories_objets/:id', (req, res) => {
+    const categories_objets_id = req.params.id
+    connection.query("DELETE FROM categories_objets WHERE id = ?", categories_objets_id, (err, results) => {
+        if (err) {
+            res.status(500).send("l'categories_objets n'a pas pu être supprimée")
+        } else {
+            res.status(200).send('categories_objets supprimée')
+        }
+    })
+}
+)
+
+// supprimer une categories_intermediaires responsable         
+router.delete('/categories_intermediaires/:id', (req, res) => {
+    const categories_intermediaires_id = req.params.id
+    connection.query("DELETE FROM categories_intermediaires WHERE id = ?", categories_intermediaires_id, (err, results) => {
+        if (err) {
+            res.status(500).send("l'categories_intermediaires n'a pas pu être supprimée")
+        } else {
+            res.status(200).send('categories_intermediaires supprimée')
+        }
+    })
+}
+)
+
+// supprimer une objets responsable         
+router.delete('/objets/:id', (req, res) => {
+    const objets_id = req.params.id
+    connection.query("DELETE FROM objets WHERE id = ?", objets_id, (err, results) => {
+        if (err) {
+            res.status(500).send("l'objets n'a pas pu être supprimée")
+        } else {
+            res.status(200).send('objets supprimée')
+        }
+    })
+}
+)
+
+// supprimer une besoins responsable         
+router.delete('/besoins/:id', (req, res) => {
+    const besoins_id = req.params.id
+    connection.query("DELETE FROM besoins WHERE id = ?", besoins_id, (err, results) => {
+        if (err) {
+            res.status(500).send("l'besoins n'a pas pu être supprimée")
+        } else {
+            res.status(200).send('besoins supprimée')
+        }
+    })
+}
+)
+
+// supprimer une types_activites responsable         
+router.delete('/types_activites/:id', (req, res) => {
+    const types_activites_id = req.params.id
+    connection.query("DELETE FROM types_activites WHERE id = ?", types_activites_id, (err, results) => {
+        if (err) {
+            res.status(500).send("l'types_activites n'a pas pu être supprimée")
+        } else {
+            res.status(200).send('types_activites supprimée')
+        }
+    })
+}
+)
+
 
 
 

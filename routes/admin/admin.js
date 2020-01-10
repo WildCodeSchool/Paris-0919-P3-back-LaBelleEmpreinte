@@ -57,6 +57,52 @@ router.get('/engagements/:id', (req, res) => {
 }
 )
 
+// Page modifier/supprimer articles
+// autre route dans user pour Get les articles //
+// Get pour récupérer les filtres par les tables intermédiaires
+
+router.get('/articles/:id', (req, res) => {
+    const articleId = req.params.id
+    connection.query('select besoins.besoins, besoins.id from besoins inner join articles_has_besoins on articles_has_besoins.besoins_id = besoins.id where articles_has_besoins.articles_id = ?', articleId, (err, results) => {
+        if (err) {
+            res.status(500).send("les besoins associés n'ont pas pu être trouvés")
+        } else {
+            connection.query('select types_activites.types_activites, types_activites.id from types_activites inner join articles_has_types_activites on articles_has_types_activites.types_activites_id = types_activites.id where articles_has_types_activites.articles_id = ?', articleId, (err, results) => {
+                if (err) {
+                    res.status(500).send("les types d'activités associés n'ont pas pu être trouvés")
+                } else {
+                    connection.query('select categories_objets.categorie, categories_objets.id  from categories_objets inner join articles_has_categories_objets on articles_has_categories_objets.categories_objets_id = categories_objets.id where articles_has_categories_objets.articles_id = ?', articleId, (err, results) => {
+                        if (err) {
+                            res.status(500).send("les catégories d'objets associées n'ont pas pu être trouvées")
+                        } else {
+                            connection.query('select categories_intermediaires.name, categories_intermediaires.id from categories_intermediaires inner join articles_has_categories_intermediaires on articles_has_categories_intermediaires.categories_intermediaires_id = categories_intermediaires.id where articles_has_categories_intermediaires.articles_id = ?', articleId, (err, results) => {
+                                if (err) {
+                                    res.status(500).send("les categories intermediaires associées n'ont pas pu être trouvées")
+                                } else {
+                                    connection.query('select objets.objets, objets.id from objets inner join articles_has_objets on articles_has_objets.objets_id = objets.id where articles_has_objets.articles_id = ?', articleId, (err, results) => {
+                                        if (err) {
+                                            res.status(500).send("les objets associés n'ont pas pu être trouvés")
+                                        } else {
+                                            connection.query('select initiatives.name, initiatives.id from initiatives inner join articles_has_initiatives on articles_has_initiatives.initiatives_id = initiatives.id where articles_has_initiatives.articles_id = ?', articleId, (err, results) => {
+                                                if (err) {
+                                                    res.status(500).send("les initiatives associés n'ont pas pu être trouvés")
+                                                } else {
+                                                    res.status(200).json(results)
+                                                }
+                                            })
+                                        }
+                                    })
+                                }
+                            })
+                        }
+                    })
+                }
+            })
+        }
+    })
+})
+
+
 
 // Page afficher catégorie d'objets //
 router.get('/categories_objets', (req, res) => {
@@ -332,6 +378,46 @@ router.post('/articles/create', (req, res) => {
             tableBinding('articles', 'categories_intermediaires', categories_intermediaires, articleId)
             tableBinding('articles', 'objets', objets, articleId)
             res.status(200).send('article créé')  /// faut qu'on trouve un moyen de faire le res.status(200) après que les fonctions soient jouées
+        }
+
+    })
+}
+)
+
+///// créer une initiative //////
+router.post('/initiatives/create', (req, res) => {
+    const postInitiatives = req.body.initiatives
+    const engagements = req.body.engagements
+    const besoins = req.body.besoins
+    const types_activites = req.body.types_activites
+    const categories_objets = req.body.categories_objets
+    const categories_intermediaires = req.body.categories_intermediaires
+    const objets = req.body.objets
+    console.log(postInitiatives);
+
+    const tableBinding = (tab1, tab2, tab2value, id) => {
+        if (tab2value.length != 0) {
+            tab2value.map((elem, index) =>
+                connection.query(`INSERT INTO ${tab1}_has_${tab2} (${tab1}_id, ${tab2}_id) VALUES ( ${id}, ${elem})`, (err, results) => {
+                    if (err) {
+                        res.status(500).send("l'initiative n'a pas pu être créé step 2")
+                    }
+                }))
+        }
+    }
+
+    connection.query("INSERT INTO initiatives SET ? ", postInitiatives, (err, results) => {
+        if (err) {
+            res.status(500).send("l'initiative n'a pas pu être créé")
+        } else {
+            const initId = results.insertId
+            tableBinding('initiatives', 'engagements', engagements, initId)
+            tableBinding('initiatives', 'besoins', besoins, initId)
+            tableBinding('initiatives', 'types_activites', types_activites, initId)
+            tableBinding('initiatives', 'categories_objets', categories_objets, initId)
+            tableBinding('initiatives', 'categories_intermediaires', categories_intermediaires, initId)
+            tableBinding('initiatives', 'objets', objets, initId)
+            res.status(200).send('initiative créé')  /// faut qu'on trouve un moyen de faire le res.status(200) après que les fonctions soient jouées
         }
 
     })

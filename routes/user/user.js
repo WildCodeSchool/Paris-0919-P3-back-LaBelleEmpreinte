@@ -103,7 +103,7 @@ router.post('/filtre', (req, res) => {
 })
 
 // récupérer le contenu d'un article grâce à son id //
-router.get('/article/:id', (req, res) => {
+router.get('/articles/:id', (req, res) => {
 
 	connection.query(`SELECT * FROM articles WHERE id = ?`, req.params.id, (err, results) => {
 		if (err) {

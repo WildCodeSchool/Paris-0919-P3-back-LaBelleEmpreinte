@@ -509,7 +509,7 @@ router.post('/initiatives/create', (req, res) => {
 )
 
 
-///////// PUT ///////////
+//////////////////////////////// PUT //////////////////////////////////
 
 /// Modifier un engagements ///
 router.put('/engagements/modify', (req, res) => {
@@ -600,9 +600,10 @@ router.put('/types_activites/modify', (req, res) => {
 // modifier un article informatif 
 //// première partie : modifier le contenu de la table article 
 router.put('/articles_maj/:id', (req, res) => {
-    const putArticles = req.body
+    const putArticles = req.body.article
     const article_id = req.params.id
-    connection.query("UPDATE articles SET ? WHERE id = ?", putArticles, article_id, (err, results) => {
+    console.log(putArticles)
+    connection.query(`UPDATE articles SET ? WHERE id = ?`, [putArticles, article_id], (err, results) => {
         if (err) {
             res.status(500).send("l'aticle n'a pas pu être modifié")
         } else {
@@ -616,14 +617,12 @@ router.put('/articles_maj/:id', (req, res) => {
 //// seconde partie : supprimer l'article des tables intermédiaires et reassocier l'article aux tables intermédiaires sélectionnées
 router.put('/articles/:id', (req, res) => {
     const articleId = req.params.id
-    const postArticles = req.body.article
     const initiatives = req.body.initiatives
     const besoins = req.body.besoins
     const types_activites = req.body.types_activites
     const categories_objets = req.body.categories_objets
     const categories_intermediaires = req.body.categories_intermediaires
     const objets = req.body.objets
-    console.log(postArticles);
 
     const tableBinding = (tab1, tab2, tab2value, id) => {
         if (tab2value.length != 0) {
@@ -673,7 +672,7 @@ router.put('/articles/:id', (req, res) => {
                                                             tableBinding('articles', 'categories_objets', categories_objets, articleId)
                                                             tableBinding('articles', 'categories_intermediaires', categories_intermediaires, articleId)
                                                             tableBinding('articles', 'objets', objets, articleId)
-                                                            // res.status(200).send('article créé')  /// faut qu'on trouve un moyen de faire le res.status(200) après que les fonctions soient jouées
+                                                            res.status(200).send('article modifié')  /// faut qu'on trouve un moyen de faire le res.status(200) après que les fonctions soient jouées
                                                       
                                                 }
                                             }
@@ -702,12 +701,11 @@ router.put('/articles/:id', (req, res) => {
 
     //////////////  page modifier une initiave responsable /////////////// 
 
-    // modifier une initiative responsable        
-    // IL FAUT MAJ LES TABLES INTERMEDIAIRES
+    // Première partie :  modifier une initiative responsable dans la table initiatives     
     router.put('/initiatives_maj/:id', (req, res) => {
-        const putInitiatives = req.body
+        const putInitiatives = req.body.initiatives
         const initiative_id = req.params.id
-        connection.query("UPDATE initiatives SET ? WHERE id = ?", putInitiatives, initiative_id, (err, results) => {
+        connection.query("UPDATE initiatives SET ? WHERE id = ?", [putInitiatives, initiative_id], (err, results) => {
             if (err) {
                 res.status(500).send("l'initiative n'a pas pu être modifiée")
             } else {
@@ -716,6 +714,82 @@ router.put('/articles/:id', (req, res) => {
         })
     }
     )
+
+    //Deuxième partie : modifier les tables intermédiaires initiatives_has_something
+    router.put('/initiatives/:id', (req, res) => {
+        const initiativeId = req.params.id
+        const engagements = req.body.engagements
+        const besoins = req.body.besoins
+        const types_activites = req.body.types_activites
+        const categories_objets = req.body.categories_objets
+        const categories_intermediaires = req.body.categories_intermediaires
+        const objets = req.body.objets
+    
+        const tableBinding = (tab1, tab2, tab2value, id) => {
+            if (tab2value.length != 0) {
+                tab2value.map((elem, index) =>
+                    connection.query(`INSERT INTO ${tab1}_has_${tab2} (${tab1}_id, ${tab2}_id) VALUES ( ${id}, ${elem})`, (err, results) => {
+                        if (err) {
+                            res.status(500).send(`l'initiative n'a pas pu être créé step 2 a niveau de ${tab2}`)
+                        }
+                    }))
+            }
+        }
+    
+        connection.query('DELETE from initiatives_has_categories_objets where initiatives_id = ?', initiativeId, (err, results) => {
+            if (err) {
+                res.status(500).send("le lien avec catégories d'objet n'a pas pu être supprimé")
+            }
+            else {
+                connection.query('DELETE from initiatives_has_categories_intermediaires where initiatives_id = ?', initiativeId, (err, results) => {
+                    if (err) {
+                        res.status(500).send("le lien avec categories_intermediaires n'a pas pu être supprimé")
+                    }
+                    else {
+                        connection.query('DELETE from initiatives_has_objets where initiatives_id = ?', initiativeId, (err, results) => {
+                            if (err) {
+                                res.status(500).send("le lien avec objets n'a pas pu être supprimé")
+                            }
+                            else {
+                                connection.query('DELETE from initiatives_has_besoins where initiatives_id = ?', initiativeId, (err, results) => {
+                                    if (err) {
+                                        res.status(500).send("le lien avec besoins n'a pas pu être supprimé")
+                                    }
+                                    else {
+                                        connection.query('DELETE from initiatives_has_types_activites where initiatives_id = ?', initiativeId, (err, results) => {
+                                            if (err) {
+                                                res.status(500).send("le lien avec types_activites n'a pas pu être supprimé")
+                                            }
+                                            else {
+                                                connection.query('DELETE from initiatives_has_engagements where initiatives_id = ?', initiativeId, (err, results) => {
+                                                    if (err) {
+                                                        res.status(500).send("le lien avec engagements n'a pas pu être supprimé")
+                                                    }
+                                                    else {
+                                                       
+                                                                tableBinding('initiatives', 'engagements', engagements, initiativeId)
+                                                                tableBinding('initiatives', 'besoins', besoins, initiativeId)
+                                                                tableBinding('initiatives', 'types_activites', types_activites, initiativeId)
+                                                                tableBinding('initiatives', 'categories_objets', categories_objets, initiativeId)
+                                                                tableBinding('initiatives', 'categories_intermediaires', categories_intermediaires, initiativeId)
+                                                                tableBinding('initiatives', 'objets', objets, initiativeId)
+                                                                res.status(200).send('initiative modifiée')  /// faut qu'on trouve un moyen de faire le res.status(200) après que les fonctions soient jouées
+                                                          
+                                                    }
+                                                }
+                                                )
+                                            }
+                                        }
+                                        )
+                                    }
+                                })
+                            }
+                        })
+                    }
+                })
+            }
+        })
+    })
 
 
 

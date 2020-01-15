@@ -392,42 +392,6 @@ router.post('/filtre/initiatives', (req, res) => {
 })
 
 
-
-
-// EN PROGRES //
-
-// router.post('/filtre', (req, res) => {
-//     const besoins = req.body.besoins
-//     const types_activites = req.body.types_activites
-//     const categories_objets = req.body.categories_objets
-//     const categories_intermediaires = req.body.categories_intermediaires
-//     const objets = req.body.objets
-//     const filteredInitiatives = []
-//     const getFilters = (tab, tabValue) => {
-//         console.log(filteredInitiatives)
-//         if (tabValue.length != 0) {
-//             tabValue.map((elem, index) =>
-//                 connection.query(`SELECT initiatives.name, initiatives.id FROM initiatives INNER JOIN initiatives_has_${tab} ON initiatives_has_${tab}.initiatives_id = initiatives.id WHERE initiatives_has_${tab}.${tab}_id = ${tabValue} GROUP BY initiatives.id`, (err, results) => {
-//                     if (err) {
-//                         res.status(500).send(`les initiatives associées à ${tab} n'ont pas été récupérées`)
-//                     }
-//                     else {
-//                         const uniqueFilteredInitiatives = [...new Set(results.map(elem => filteredInitiatives.elem))]
-//                         console.log('unique', uniqueFilteredInitiatives)
-//                     }
-//                     // const uniqueFilteredInitiatives = [...new Set(results.map(elem => filteredInitiatives.elem))]
-//                 }))
-//         }
-//     }
-
-//     getFilters('besoins', besoins)
-//     getFilters('objets', objets)
-//     res.status(200).send(uniqueFilteredInitiatives)
-
-
-//    // SELECT initiatives.name, initiatives.id FROM initiatives INNER JOIN initiatives_has_besoins ON initiatives_has_besoins.initiatives_id = initiatives.id INNER JOIN besoins ON initiatives_has_besoins.initiatives_id = initiatives.id WHERE besoins.id = 4 GROUP BY initiatives.id // 
-// })
-
 /////////////// créer un article informatif ///////////////// OK
 router.post('/articles/create', (req, res) => {
     const postArticles = req.body.article
@@ -507,6 +471,58 @@ router.post('/initiatives/create', (req, res) => {
     })
 }
 )
+
+// 
+// récupérer les initiatives selon les filtres sélectionnés //
+router.post('/filtres/initiatives', (req, res) => {
+	const objectName = req.body.objectName
+	const besoinName = req.body.besoinName
+	if (objectName && besoinName) {
+		// Récupérer le titre, l'image et l'id de chaque article qui répond aux deux filtres besoin et objet //
+		connection.query(
+			`SELECT initiatives.name, initiatives.id FROM initiatives_has_categories_objets INNER JOIN categories_objets ON initiatives_has_categories_objets.categories_objets_id = categories_objets.id INNER JOIN initiatives on initiatives.id = initiatives_has_categories_objets.initiatives_id INNER JOIN initiatives_has_besoins INNER JOIN besoins ON initiatives_has_besoins.besoins_id = besoins.id INNER JOIN initiatives_has_types_activites ON initiatives_has_types_activites.initiatives_id = initiatives.id INNER JOIN types_activites ON types_activites.id = initiatives_has_types_activites.types_activites_id INNER JOIN initiatives_has_categories_intermediaires ON initiatives.id = initiatives_has_categories_intermediaires.initiatives_id INNER JOIN categories_intermediaires ON categories_intermediaires.id = initiatives_has_categories_intermediaires.categories_intermediaires_id INNER JOIN initiatives_has_objets ON initiatives.id = initiatives_has_objets.initiatives_id INNER JOIN objets ON objets.id = initiatives_has_objets.objets_id WHERE categories_objets.categorie = ? OR categories_intermediaires.name = ? OR objets.name = ? AND besoins.besoins = ? OR types_activites.types_activites = ? GROUP BY initiatives.id`,
+			[objectName, objectName, objectName, besoinName, besoinName],
+			(err, results) => {
+				if (err) {
+					console.log(err)
+					res
+						.status(500)
+						.send(`Erreur lors de la récupération de la liste des initiatives avec les 2 filtres !!`)
+				} else res.status(200).json(results)
+			}
+		)
+	}
+	else if (besoinName) {
+		// Requête SQL pour récupérer le titre, l'image et l'id de chaque article qui répond au filtre besoin //
+		connection.query(
+			`SELECT initiatives.name, initiatives.id FROM initiatives_has_categories_objets INNER JOIN categories_objets ON initiatives_has_categories_objets.categories_objets_id = categories_objets.id INNER JOIN initiatives on initiatives.id = initiatives_has_categories_objets.initiatives_id INNER JOIN initiatives_has_besoins INNER JOIN besoins ON initiatives_has_besoins.besoins_id = besoins.id INNER JOIN initiatives_has_types_activites ON initiatives_has_types_activites.initiatives_id = initiatives.id INNER JOIN types_activites ON types_activites.id = initiatives_has_types_activites.types_activites_id INNER JOIN initiatives_has_categories_intermediaires ON initiatives.id = initiatives_has_categories_intermediaires.initiatives_id INNER JOIN categories_intermediaires ON categories_intermediaires.id = initiatives_has_categories_intermediaires.categories_intermediaires_id INNER JOIN initiatives_has_objets ON initiatives.id = initiatives_has_objets.initiatives_id INNER JOIN objets ON objets.id = initiatives_has_objets.objets_id WHERE besoins.besoins = ? OR types_activites.types_activites = ? GROUP BY initiatives.id`,
+			[besoinName, besoinName],
+			(err, results) => {
+				if (err) {
+					res
+						.status(500)
+						.send(`Erreur lors de la récupération de la liste des initiatives avec le filtre besoin/typesdactivites !!`)
+				} else res.status(200).json(results)
+			}
+		)
+	}
+	else if (objectName) {
+		// Requête SQL pour récupérer le titre, l'image et l'id de chaque article qui répond au filtre objet //
+		connection.query(
+			`SELECT initiatives.name, initiatives.id FROM initiatives_has_categories_objets INNER JOIN categories_objets ON initiatives_has_categories_objets.categories_objets_id = categories_objets.id INNER JOIN initiatives on initiatives.id = initiatives_has_categories_objets.initiatives_id INNER JOIN initiatives_has_besoins INNER JOIN besoins ON initiatives_has_besoins.besoins_id = besoins.id INNER JOIN initiatives_has_types_activites ON initiatives_has_types_activites.initiatives_id = initiatives.id INNER JOIN types_activites ON types_activites.id = initiatives_has_types_activites.types_activites_id INNER JOIN initiatives_has_categories_intermediaires ON initiatives.id = initiatives_has_categories_intermediaires.initiatives_id INNER JOIN categories_intermediaires ON categories_intermediaires.id = initiatives_has_categories_intermediaires.categories_intermediaires_id INNER JOIN initiatives_has_objets ON initiatives.id = initiatives_has_objets.initiatives_id INNER JOIN objets ON objets.id = initiatives_has_objets.objets_id WHERE categories_objets.categorie = ? OR categories_intermediaires.name = ? OR objets.name = ? GROUP BY initiatives.id`,
+			[objectName, objectName, objectName],
+			(err, results) => {
+				if (err) {
+					res
+						.status(500)
+						.send(`Erreur lors de la récupération de la liste des initiatives avec le filtre objet/catint/catobjet !!`)
+				} else res.status(200).json(results)
+			}
+		)
+	}
+
+})
+
 
 
 //////////////////////////////// PUT //////////////////////////////////

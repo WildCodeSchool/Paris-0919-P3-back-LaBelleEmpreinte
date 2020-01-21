@@ -122,8 +122,8 @@ router.get('/initiatives/:id', (req, res) => {
 })
 
 // récupérer les engagements associés à une initiative grâce à l'id de l'initiative //
-router.get('/engagements/:id', (req, res) => {
-	connection.query(`SELECT engagements.* from initiatives INNER JOIN initiatives_has_engagements ON initiatives_has_engagements.initiatives_id = initiatives.id INNER JOIN engagements ON engagements.id = initiatives_has_engagements.engagements_id WHERE initiatives.id = ?`, req.params.id, (err, results) => {
+router.get('/engagements', (req, res) => {
+	connection.query(`SELECT engagements.*, initiatives_has_engagements.initiatives_id from initiatives INNER JOIN initiatives_has_engagements ON initiatives_has_engagements.initiatives_id = initiatives.id INNER JOIN engagements ON engagements.id = initiatives_has_engagements.engagements_id`, req.params.id, (err, results) => {
 		if (err) {
 			res.status(500).send('Error retrieving article')
 		} else res.status(200).json(results)

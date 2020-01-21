@@ -24,6 +24,17 @@ router.get('/besoins', (req, res) => {
 
 })
 
+router.get('/show', (req, res) => {
+    connection.query('SELECT * FROM userbase', (err, results) => {
+        if (err) {
+            return res.status(500).send('erreur dans la récupération des données')
+        }
+        else {
+            return res.json(results)
+        }
+    })
+})
+
 
 // Get all Catégories d'objets, catégories intermédiaires and objects //
 router.get('/objets', (req, res) => {

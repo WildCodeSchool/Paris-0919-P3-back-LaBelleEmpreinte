@@ -114,7 +114,16 @@ router.get('/articles/:id', (req, res) => {
 
 // récupérer les initiatives associées à un article grâce à l'id de l'article //
 router.get('/initiatives/:id', (req, res) => {
-	connection.query(`SELECT initiatives.name, initiatives.url, initiatives.adresse1, initiatives.logo from articles INNER JOIN articles_has_initiatives ON articles_has_initiatives.articles_id = articles.id INNER JOIN initiatives ON initiatives.id = articles_has_initiatives.initiatives_id WHERE articles.id = ?`, req.params.id, (err, results) => {
+	connection.query(`SELECT initiatives.* from articles INNER JOIN articles_has_initiatives ON articles_has_initiatives.articles_id = articles.id INNER JOIN initiatives ON initiatives.id = articles_has_initiatives.initiatives_id WHERE articles.id = ?`, req.params.id, (err, results) => {
+		if (err) {
+			res.status(500).send('Error retrieving article')
+		} else res.status(200).json(results)
+	})
+})
+
+// récupérer les engagements associés à une initiative grâce à l'id de l'initiative //
+router.get('/engagements/:id', (req, res) => {
+	connection.query(`SELECT engagements.* from initiatives INNER JOIN initiatives_has_engagements ON initiatives_has_engagements.initiatives_id = initiatives.id INNER JOIN engagements ON engagements.id = initiatives_has_engagements.engagements_id WHERE initiatives.id = ?`, req.params.id, (err, results) => {
 		if (err) {
 			res.status(500).send('Error retrieving article')
 		} else res.status(200).json(results)

@@ -5,18 +5,6 @@ const connection = require('../../conf')
 
 const router = express.Router()
 
-
-router.get('/show', (req, res) => {
-    connection.query('SELECT * FROM userbase', (err, results) => {
-        if (err) {
-            return res.send('erreur dans la récupération des données')
-        }
-        else {
-            return res.JSON(results)
-        }
-    })
-})
-
 /**
  * Route de register d'un utilisateur
  */
@@ -38,12 +26,10 @@ router.post('/', (req, res) => {
      */
 
     const user = {
-        name: req.body.name,
-        lastName: req.body.lastName,
         email: req.body.email,
         password: bcrypt.hashSync(req.body.password) //on chiffre le mot de passe grace a bcrypt
     }
-
+    console.log(user)
     /**
      * Verification de l'absence de l'utilisateur dans la base
      */
@@ -61,7 +47,7 @@ router.post('/', (req, res) => {
          * Insertion de l'utilisateur en base
          */
 
-        connection.query(`INSERT INTO person SET ?`, user, (err, result) => {
+        connection.query(`INSERT INTO userbase (email, password) VALUES ( ?, ? )`, [user.email, user.password], (err, result) => {
             if (err) {
                 return res.status(500).send('Cannot register the user')
             }
@@ -70,9 +56,9 @@ router.post('/', (req, res) => {
              * Renvoie de l'utilisateur enregistre au front
              */
 
-            connection.query(`SELECT id, name, lastname, email FROM person WHERE id =?`, result.insertId, (err, result) => { //on ne renvoie JAMAIS le mot de passe au front.
+            connection.query(`SELECT email FROM userbase WHERE id =?`, result.insertId, (err, result) => { //on ne renvoie JAMAIS le mot de passe au front.
                 if (err) {
-                    return res.status(500).send('Internal server error')
+                    return res.status(500).send('Internal server error at the end')
                 }
                 res.status(200).send(result)
             })

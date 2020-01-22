@@ -3,6 +3,7 @@ const connection = require('../../conf')
 
 const router = express.Router()
 
+
 // Get all besoins et types d'activités //
 router.get('/besoins', (req, res) => {
 	connection.query(`SELECT * FROM besoins`, (err, results) => {
@@ -22,17 +23,6 @@ router.get('/besoins', (req, res) => {
 		}
 	});
 
-})
-
-router.get('/show', (req, res) => {
-    connection.query('SELECT * FROM userbase', (err, results) => {
-        if (err) {
-            return res.status(500).send('erreur dans la récupération des données')
-        }
-        else {
-            return res.json(results)
-        }
-    })
 })
 
 

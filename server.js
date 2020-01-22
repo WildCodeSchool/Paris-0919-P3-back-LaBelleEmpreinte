@@ -14,6 +14,7 @@ app.use(morgan('dev'))
 app.use("/user", router.user)
 app.use("/admin", router.admin)
 app.use("/login", router.register)
+app.use("/auth", router.auth)
 
 
 app.listen(port, err => {

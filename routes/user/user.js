@@ -64,51 +64,131 @@ router.get('/articles', (req, res) => {
 
 
 // récupérer les articles selon les filtres sélectionnés //
+/////////////////////////// FILTRES /////////////////////////////////
+///// FILTRES OBJETS + BESOINS /////////
+///// ROUTE pour récupérer tous les articles liés aux filtres Objets et Besoins (quand les deux filtres sont sélectionnés)
 router.post('/filtres/articles', (req, res) => {
-	const objectName = req.body.objectName
-	const besoinName = req.body.besoinName
-	if (objectName && besoinName) {
-		// Récupérer le titre, l'image et l'id de chaque article qui répond aux deux filtres besoin et objet //
-		connection.query(
-			`SELECT articles.titre, articles.image, articles.id FROM articles_has_categories_objets INNER JOIN categories_objets ON articles_has_categories_objets.categories_objets_id = categories_objets.id INNER JOIN articles on articles.id = articles_has_categories_objets.articles_id INNER JOIN articles_has_besoins INNER JOIN besoins ON articles_has_besoins.besoins_id = besoins.id INNER JOIN articles_has_types_activites ON articles_has_types_activites.articles_id = articles.id INNER JOIN types_activites ON types_activites.id = articles_has_types_activites.types_activites_id INNER JOIN articles_has_categories_intermediaires ON articles.id = articles_has_categories_intermediaires.articles_id INNER JOIN categories_intermediaires ON categories_intermediaires.id = articles_has_categories_intermediaires.categories_intermediaires_id INNER JOIN articles_has_objets ON articles.id = articles_has_objets.articles_id INNER JOIN objets ON objets.id = articles_has_objets.objets_id WHERE categories_objets.categorie = ? OR categories_intermediaires.name = ? OR objets.name = ? AND besoins.besoins = ? OR types_activites.types_activites = ? GROUP BY articles.id`,
-			[objectName, objectName, objectName, besoinName, besoinName],
-			(err, results) => {
+	const object = req.body.object
+	const besoin = req.body.besoin
+	if (object.type == 'categories_objets') {
+		if (besoin.type == 'besoins') {
+			connection.query(`
+				SELECT articles.* from articles INNER JOIN articles_has_categories_objets ON articles_has_categories_objets.articles_id = articles.id INNER JOIN articles_has_besoins ON articles_has_besoins.articles_id = articles.id WHERE articles_has_categories_objets.categories_objets_id = ? AND articles_has_besoins.besoins_id = ?`, [object.id, besoin.id], (err, results) => {
 				if (err) {
-					console.log(err)
-					res
-						.status(500)
-						.send(`Erreur lors de la récupération de la liste des users avec les 2 filtres !!`)
+					res.status(500).send('Error retrieving articles related to objets')
 				} else res.status(200).json(results)
-			}
-		)
+			})
+		} else if (besoin.type == 'types_activites') {
+			connection.query(`
+		SELECT articles.* from articles INNER JOIN articles_has_categories_objets ON articles_has_categories_objets.articles_id = articles.id INNER JOIN articles_has_types_activites ON articles_has_types_activites.articles_id = articles.id WHERE articles_has_categories_objets.categories_objets_id = ? AND articles_has_types_activites.types_activites_id = ?`, [object.id, besoin.id], (err, results) => {
+				if (err) {
+					res.status(500).send('Error retrieving articles related to objets')
+				} else res.status(200).json(results)
+			})
+
+
+		}
 	}
-	else if (besoinName) {
-		// Requête SQL pour récupérer le titre, l'image et l'id de chaque article qui répond au filtre besoin //
-		connection.query(
-			`SELECT articles.titre, articles.image, articles.id FROM articles_has_categories_objets INNER JOIN categories_objets ON articles_has_categories_objets.categories_objets_id = categories_objets.id INNER JOIN articles on articles.id = articles_has_categories_objets.articles_id INNER JOIN articles_has_besoins INNER JOIN besoins ON articles_has_besoins.besoins_id = besoins.id INNER JOIN articles_has_types_activites ON articles_has_types_activites.articles_id = articles.id INNER JOIN types_activites ON types_activites.id = articles_has_types_activites.types_activites_id INNER JOIN articles_has_categories_intermediaires ON articles.id = articles_has_categories_intermediaires.articles_id INNER JOIN categories_intermediaires ON categories_intermediaires.id = articles_has_categories_intermediaires.categories_intermediaires_id INNER JOIN articles_has_objets ON articles.id = articles_has_objets.articles_id INNER JOIN objets ON objets.id = articles_has_objets.objets_id WHERE besoins.besoins = ? OR types_activites.types_activites = ? GROUP BY articles.id`,
-			[besoinName, besoinName],
-			(err, results) => {
+
+	else if (object.type == 'categories_intermediaires') {
+		if (besoin.type == 'besoins') {
+			connection.query(`
+							SELECT articles.* from articles INNER JOIN articles_has_categories_intermediaires ON articles_has_categories_intermediaires.articles_id = articles.id INNER JOIN articles_has_besoins ON articles_has_besoins.articles_id = articles.id WHERE articles_has_categories_intermediaires.categories_intermediaires_id = ? AND articles_has_besoins.besoins_id = ?`, [object.id, besoin.id], (err, results) => {
 				if (err) {
-					res
-						.status(500)
-						.send(`Erreur lors de la récupération de la liste des users avec le filtre besoin/typesdactivites !!`)
+					res.status(500).send('Error retrieving articles related to objets')
 				} else res.status(200).json(results)
-			}
-		)
+			})
+		} else if (besoin.type == 'types_activites') {
+			connection.query(`
+					SELECT articles.* from articles INNER JOIN articles_has_categories_intermediaires ON articles_has_categories_intermediaires.articles_id = articles.id INNER JOIN articles_has_types_activites ON articles_has_types_activites.articles_id = articles.id WHERE articles_has_categories_intermediaires.categories_intermediaires_id = ? AND articles_has_types_activites.types_activites_id = ?`, [object.id, besoin.id], (err, results) => {
+				if (err) {
+					res.status(500).send('Error retrieving articles related to objets')
+				} else res.status(200).json(results)
+			})
+
+
+		}
 	}
-	else if (objectName) {
-		// Requête SQL pour récupérer le titre, l'image et l'id de chaque article qui répond au filtre objet //
-		connection.query(
-			`SELECT articles.titre, articles.image, articles.id FROM articles_has_categories_objets INNER JOIN categories_objets ON articles_has_categories_objets.categories_objets_id = categories_objets.id INNER JOIN articles on articles.id = articles_has_categories_objets.articles_id INNER JOIN articles_has_besoins INNER JOIN besoins ON articles_has_besoins.besoins_id = besoins.id INNER JOIN articles_has_types_activites ON articles_has_types_activites.articles_id = articles.id INNER JOIN types_activites ON types_activites.id = articles_has_types_activites.types_activites_id INNER JOIN articles_has_categories_intermediaires ON articles.id = articles_has_categories_intermediaires.articles_id INNER JOIN categories_intermediaires ON categories_intermediaires.id = articles_has_categories_intermediaires.categories_intermediaires_id INNER JOIN articles_has_objets ON articles.id = articles_has_objets.articles_id INNER JOIN objets ON objets.id = articles_has_objets.objets_id WHERE categories_objets.categorie = ? OR categories_intermediaires.name = ? OR objets.name = ? GROUP BY articles.id`,
-			[objectName, objectName, objectName],
-			(err, results) => {
+
+	else if (object.type == 'objets') {
+		if (besoin.type == 'besoins') {
+			connection.query(`
+									SELECT articles.* from articles INNER JOIN articles_has_objets ON articles_has_objets.articles_id = articles.id INNER JOIN articles_has_besoins ON articles_has_besoins.articles_id = articles.id WHERE articles_has_objets.objets_id = ? AND articles_has_besoins.besoins_id = ?`, [object.id, besoin.id], (err, results) => {
 				if (err) {
-					res
-						.status(500)
-						.send(`Erreur lors de la récupération de la liste des users avec le filtre objet/catint/catobjet !!`)
+					res.status(500).send('Error retrieving articles related to objets')
 				} else res.status(200).json(results)
-			}
-		)
+			})
+		} else if (besoin.type == 'types_activites') {
+			connection.query(`
+							SELECT articles.* from articles INNER JOIN articles_has_objets ON articles_has_objets.articles_id = articles.id INNER JOIN articles_has_types_activites ON articles_has_types_activites.articles_id = articles.id WHERE articles_has_objets.objets_id = ? AND articles_has_types_activites.types_activites_id = ?`, [object.id, besoin.id], (err, results) => {
+				if (err) {
+					res.status(500).send('Error retrieving articles related to objets')
+				} else res.status(200).json(results)
+			})
+
+
+		}
+	}
+
+})
+
+////FILTRES OBJET////
+///// ROUTE pour récupérer tous les articles liés au filtre Objet (quand seul le filtre Objet est sélectionné)
+router.post('/filtres/objets/articles', (req, res) => {
+	const object = req.body.object
+	if (object.type == 'categories_objets') {
+		connection.query(`
+	SELECT articles.* from articles INNER JOIN articles_has_categories_objets ON articles_has_categories_objets.articles_id = articles.id WHERE articles_has_categories_objets.categories_objets_id = ?`, object.id, (err, results) => {
+			if (err) {
+				res.status(500).send('Error retrieving articles related to objets')
+			} else res.status(200).json(results)
+		})
+	}
+
+	else if (object.type == 'categories_intermediaires') {
+		connection.query(`
+			SELECT articles.* from articles INNER JOIN articles_has_categories_intermediaires ON articles_has_categories_intermediaires.articles_id = articles.id WHERE articles_has_categories_intermediaires.categories_intermediaires_id = ?`, object.id, (err, results) => {
+			if (err) {
+				res.status(500).send('Error retrieving article related to categories intermediaires')
+			} else res.status(200).json(results)
+		})
+	}
+
+	else if (object.type == 'objets') {
+		connection.query(`
+			SELECT articles.* from articles INNER JOIN articles_has_objets ON articles_has_objets.articles_id = articles.id WHERE articles_has_objets.objets_id = ?`, object.id, (err, results) => {
+			if (err) {
+				res.status(500).send('Error retrieving article related to categories intermediaires')
+			} else res.status(200).json(results)
+		})
+	}
+
+})
+
+////FILTRES BESOINS////
+///// ROUTE pour récupérer tous les articles liés au filtre Besoin (quand seul le filtre besoin est sélectionné)
+router.post('/filtres/besoins/articles', (req, res) => {
+	const besoin = req.body.besoin
+	console.log(besoin)
+	console.log(besoin.type)
+	if (besoin.type == 'besoins') {
+		console.log('salut')
+		connection.query(`
+	SELECT articles.* from articles INNER JOIN articles_has_besoins ON articles_has_besoins.articles_id = articles.id WHERE articles_has_besoins.besoins_id = ?`, besoin.id, (err, results) => {
+			if (err) {
+				res.status(500).send('Error retrieving articles related to objets')
+			} else res.status(200).json(results)
+		})
+	}
+
+	else if (besoin.type == 'types_activites') {
+		console.log('aurevoir')
+		connection.query(`
+			SELECT articles.* from articles INNER JOIN articles_has_types_activites ON articles_has_types_activites.articles_id = articles.id WHERE articles_has_types_activites.types_activites_id = ?`, besoin.id, (err, results) => {
+			if (err) {
+				res.status(500).send('Error retrieving article related to categories intermediaires')
+			} else res.status(200).json(results)
+		})
 	}
 
 })
@@ -125,7 +205,16 @@ router.get('/articles/:id', (req, res) => {
 
 // récupérer les initiatives associées à un article grâce à l'id de l'article //
 router.get('/initiatives/:id', (req, res) => {
-	connection.query(`SELECT initiatives.name, initiatives.url, initiatives.adresse1, initiatives.logo from articles INNER JOIN articles_has_initiatives ON articles_has_initiatives.articles_id = articles.id INNER JOIN initiatives ON initiatives.id = articles_has_initiatives.initiatives_id WHERE articles.id = ?`, req.params.id, (err, results) => {
+	connection.query(`SELECT initiatives.* from articles INNER JOIN articles_has_initiatives ON articles_has_initiatives.articles_id = articles.id INNER JOIN initiatives ON initiatives.id = articles_has_initiatives.initiatives_id WHERE articles.id = ?`, req.params.id, (err, results) => {
+		if (err) {
+			res.status(500).send('Error retrieving article')
+		} else res.status(200).json(results)
+	})
+})
+
+// récupérer les engagements associés à une initiative grâce à l'id de l'initiative //
+router.get('/engagements', (req, res) => {
+	connection.query(`SELECT engagements.*, initiatives_has_engagements.initiatives_id from initiatives INNER JOIN initiatives_has_engagements ON initiatives_has_engagements.initiatives_id = initiatives.id INNER JOIN engagements ON engagements.id = initiatives_has_engagements.engagements_id`, req.params.id, (err, results) => {
 		if (err) {
 			res.status(500).send('Error retrieving article')
 		} else res.status(200).json(results)

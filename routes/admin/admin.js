@@ -381,7 +381,7 @@ router.post('/types_activites/create', (req, res) => {
 router.post('/filtre/initiatives', (req, res) => {
     const formData = req.body
     console.log(formData)
-    connection.query(`select initiatives.name from initiatives inner join initiatives_has_${formData.type} on initiatives_has_${formData.type}.initiatives_id = initiatives.id where initiatives_has_${formData.type}.${formData.type}_id = ? group by initiatives.id`, formData.id, (err, results) => {
+    connection.query(`select initiatives.name, initiatives.id from initiatives inner join initiatives_has_${formData.type} on initiatives_has_${formData.type}.initiatives_id = initiatives.id where initiatives_has_${formData.type}.${formData.type}_id = ? group by initiatives.id`, formData.id, (err, results) => {
         if (err) {
             res.status(500).send(`les initiatives associées à truc n'ont pas été récupérées`)
         }

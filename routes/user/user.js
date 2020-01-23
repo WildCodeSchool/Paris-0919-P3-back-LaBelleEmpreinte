@@ -3,6 +3,7 @@ const connection = require('../../conf')
 
 const router = express.Router()
 
+
 // Get all besoins et types d'activités //
 router.get('/besoins', (req, res) => {
 	connection.query(`SELECT * FROM besoins`, (err, results) => {

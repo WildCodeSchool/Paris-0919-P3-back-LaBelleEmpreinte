@@ -13,6 +13,8 @@ app.use(bodyParser.urlencoded({ extended: true }))
 app.use(morgan('dev'))
 app.use("/user", router.user)
 app.use("/admin", router.admin)
+app.use("/login", router.register)
+app.use("/auth", router.authentification)
 
 
 app.listen(port, err => {

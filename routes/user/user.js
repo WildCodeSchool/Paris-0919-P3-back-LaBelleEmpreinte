@@ -52,6 +52,17 @@ router.get('/objets', (req, res) => {
 	})
 })
 
+//récupérer tous les articles
+router.get('/articles', (req, res) => {
+
+	connection.query(`SELECT * FROM articles`, (err, results) => {
+		if (err) {
+			res.status(500).send('Error retrieving article')
+		} else res.status(200).json(results)
+	})
+})
+
+
 // récupérer les articles selon les filtres sélectionnés //
 router.post('/filtres/articles', (req, res) => {
 	const objectName = req.body.objectName

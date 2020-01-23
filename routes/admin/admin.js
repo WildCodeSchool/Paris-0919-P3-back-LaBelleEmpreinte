@@ -381,7 +381,7 @@ router.post('/types_activites/create', (req, res) => {
 router.post('/filtre/initiatives', (req, res) => {
     const formData = req.body
     console.log(formData)
-    connection.query(`select initiatives.name from initiatives inner join initiatives_has_${formData.type} on initiatives_has_${formData.type}.initiatives_id = initiatives.id where initiatives_has_${formData.type}.${formData.type}_id = ? group by initiatives.id`, formData.id, (err, results) => {
+    connection.query(`select initiatives.name, initiatives.id from initiatives inner join initiatives_has_${formData.type} on initiatives_has_${formData.type}.initiatives_id = initiatives.id where initiatives_has_${formData.type}.${formData.type}_id = ? group by initiatives.id`, formData.id, (err, results) => {
         if (err) {
             res.status(500).send(`les initiatives associées à truc n'ont pas été récupérées`)
         }
@@ -474,51 +474,131 @@ router.post('/initiatives/create', (req, res) => {
 
 // 
 // récupérer les initiatives selon les filtres sélectionnés //
+/////////////////////////// FILTRES /////////////////////////////////
+///// FILTRES OBJETS + BESOINS /////////
+///// ROUTE pour récupérer tous les initiatives liés aux filtres Objets et Besoins (quand les deux filtres sont sélectionnés)
 router.post('/filtres/initiatives', (req, res) => {
-	const objectName = req.body.objectName
-	const besoinName = req.body.besoinName
-	if (objectName && besoinName) {
-		// Récupérer le titre, l'image et l'id de chaque article qui répond aux deux filtres besoin et objet //
-		connection.query(
-			`SELECT initiatives.name, initiatives.id FROM initiatives_has_categories_objets INNER JOIN categories_objets ON initiatives_has_categories_objets.categories_objets_id = categories_objets.id INNER JOIN initiatives on initiatives.id = initiatives_has_categories_objets.initiatives_id INNER JOIN initiatives_has_besoins INNER JOIN besoins ON initiatives_has_besoins.besoins_id = besoins.id INNER JOIN initiatives_has_types_activites ON initiatives_has_types_activites.initiatives_id = initiatives.id INNER JOIN types_activites ON types_activites.id = initiatives_has_types_activites.types_activites_id INNER JOIN initiatives_has_categories_intermediaires ON initiatives.id = initiatives_has_categories_intermediaires.initiatives_id INNER JOIN categories_intermediaires ON categories_intermediaires.id = initiatives_has_categories_intermediaires.categories_intermediaires_id INNER JOIN initiatives_has_objets ON initiatives.id = initiatives_has_objets.initiatives_id INNER JOIN objets ON objets.id = initiatives_has_objets.objets_id WHERE categories_objets.categorie = ? OR categories_intermediaires.name = ? OR objets.name = ? AND besoins.besoins = ? OR types_activites.types_activites = ? GROUP BY initiatives.id`,
-			[objectName, objectName, objectName, besoinName, besoinName],
-			(err, results) => {
+	const object = req.body.object
+	const besoin = req.body.besoin
+	if (object.type == 'categories_objets') {
+		if (besoin.type == 'besoins') {
+			connection.query(`
+				SELECT initiatives.* from initiatives INNER JOIN initiatives_has_categories_objets ON initiatives_has_categories_objets.initiatives_id = initiatives.id INNER JOIN initiatives_has_besoins ON initiatives_has_besoins.initiatives_id = initiatives.id WHERE initiatives_has_categories_objets.categories_objets_id = ? AND initiatives_has_besoins.besoins_id = ?`, [object.id, besoin.id], (err, results) => {
 				if (err) {
-					console.log(err)
-					res
-						.status(500)
-						.send(`Erreur lors de la récupération de la liste des initiatives avec les 2 filtres !!`)
+					res.status(500).send('Error retrieving initiatives related to objets')
 				} else res.status(200).json(results)
-			}
-		)
+			})
+		} else if (besoin.type == 'types_activites') {
+			connection.query(`
+		SELECT initiatives.* from initiatives INNER JOIN initiatives_has_categories_objets ON initiatives_has_categories_objets.initiatives_id = initiatives.id INNER JOIN initiatives_has_types_activites ON initiatives_has_types_activites.initiatives_id = initiatives.id WHERE initiatives_has_categories_objets.categories_objets_id = ? AND initiatives_has_types_activites.types_activites_id = ?`, [object.id, besoin.id], (err, results) => {
+				if (err) {
+					res.status(500).send('Error retrieving initiatives related to objets')
+				} else res.status(200).json(results)
+			})
+
+
+		}
 	}
-	else if (besoinName) {
-		// Requête SQL pour récupérer le titre, l'image et l'id de chaque article qui répond au filtre besoin //
-		connection.query(
-			`SELECT initiatives.name, initiatives.id FROM initiatives_has_categories_objets INNER JOIN categories_objets ON initiatives_has_categories_objets.categories_objets_id = categories_objets.id INNER JOIN initiatives on initiatives.id = initiatives_has_categories_objets.initiatives_id INNER JOIN initiatives_has_besoins INNER JOIN besoins ON initiatives_has_besoins.besoins_id = besoins.id INNER JOIN initiatives_has_types_activites ON initiatives_has_types_activites.initiatives_id = initiatives.id INNER JOIN types_activites ON types_activites.id = initiatives_has_types_activites.types_activites_id INNER JOIN initiatives_has_categories_intermediaires ON initiatives.id = initiatives_has_categories_intermediaires.initiatives_id INNER JOIN categories_intermediaires ON categories_intermediaires.id = initiatives_has_categories_intermediaires.categories_intermediaires_id INNER JOIN initiatives_has_objets ON initiatives.id = initiatives_has_objets.initiatives_id INNER JOIN objets ON objets.id = initiatives_has_objets.objets_id WHERE besoins.besoins = ? OR types_activites.types_activites = ? GROUP BY initiatives.id`,
-			[besoinName, besoinName],
-			(err, results) => {
+
+	else if (object.type == 'categories_intermediaires') {
+		if (besoin.type == 'besoins') {
+			connection.query(`
+							SELECT initiatives.* from initiatives INNER JOIN initiatives_has_categories_intermediaires ON initiatives_has_categories_intermediaires.initiatives_id = initiatives.id INNER JOIN initiatives_has_besoins ON initiatives_has_besoins.initiatives_id = initiatives.id WHERE initiatives_has_categories_intermediaires.categories_intermediaires_id = ? AND initiatives_has_besoins.besoins_id = ?`, [object.id, besoin.id], (err, results) => {
 				if (err) {
-					res
-						.status(500)
-						.send(`Erreur lors de la récupération de la liste des initiatives avec le filtre besoin/typesdactivites !!`)
+					res.status(500).send('Error retrieving initiatives related to objets')
 				} else res.status(200).json(results)
-			}
-		)
+			})
+		} else if (besoin.type == 'types_activites') {
+			connection.query(`
+					SELECT initiatives.* from initiatives INNER JOIN initiatives_has_categories_intermediaires ON initiatives_has_categories_intermediaires.initiatives_id = initiatives.id INNER JOIN initiatives_has_types_activites ON initiatives_has_types_activites.initiatives_id = initiatives.id WHERE initiatives_has_categories_intermediaires.categories_intermediaires_id = ? AND initiatives_has_types_activites.types_activites_id = ?`, [object.id, besoin.id], (err, results) => {
+				if (err) {
+					res.status(500).send('Error retrieving initiatives related to objets')
+				} else res.status(200).json(results)
+			})
+
+
+		}
 	}
-	else if (objectName) {
-		// Requête SQL pour récupérer le titre, l'image et l'id de chaque article qui répond au filtre objet //
-		connection.query(
-			`SELECT initiatives.name, initiatives.id FROM initiatives_has_categories_objets INNER JOIN categories_objets ON initiatives_has_categories_objets.categories_objets_id = categories_objets.id INNER JOIN initiatives on initiatives.id = initiatives_has_categories_objets.initiatives_id INNER JOIN initiatives_has_besoins INNER JOIN besoins ON initiatives_has_besoins.besoins_id = besoins.id INNER JOIN initiatives_has_types_activites ON initiatives_has_types_activites.initiatives_id = initiatives.id INNER JOIN types_activites ON types_activites.id = initiatives_has_types_activites.types_activites_id INNER JOIN initiatives_has_categories_intermediaires ON initiatives.id = initiatives_has_categories_intermediaires.initiatives_id INNER JOIN categories_intermediaires ON categories_intermediaires.id = initiatives_has_categories_intermediaires.categories_intermediaires_id INNER JOIN initiatives_has_objets ON initiatives.id = initiatives_has_objets.initiatives_id INNER JOIN objets ON objets.id = initiatives_has_objets.objets_id WHERE categories_objets.categorie = ? OR categories_intermediaires.name = ? OR objets.name = ? GROUP BY initiatives.id`,
-			[objectName, objectName, objectName],
-			(err, results) => {
+
+	else if (object.type == 'objets') {
+		if (besoin.type == 'besoins') {
+			connection.query(`
+									SELECT initiatives.* from initiatives INNER JOIN initiatives_has_objets ON initiatives_has_objets.initiatives_id = initiatives.id INNER JOIN initiatives_has_besoins ON initiatives_has_besoins.initiatives_id = initiatives.id WHERE initiatives_has_objets.objets_id = ? AND initiatives_has_besoins.besoins_id = ?`, [object.id, besoin.id], (err, results) => {
 				if (err) {
-					res
-						.status(500)
-						.send(`Erreur lors de la récupération de la liste des initiatives avec le filtre objet/catint/catobjet !!`)
+					res.status(500).send('Error retrieving initiatives related to objets')
 				} else res.status(200).json(results)
-			}
-		)
+			})
+		} else if (besoin.type == 'types_activites') {
+			connection.query(`
+							SELECT initiatives.* from initiatives INNER JOIN initiatives_has_objets ON initiatives_has_objets.initiatives_id = initiatives.id INNER JOIN initiatives_has_types_activites ON initiatives_has_types_activites.initiatives_id = initiatives.id WHERE initiatives_has_objets.objets_id = ? AND initiatives_has_types_activites.types_activites_id = ?`, [object.id, besoin.id], (err, results) => {
+				if (err) {
+					res.status(500).send('Error retrieving initiatives related to objets')
+				} else res.status(200).json(results)
+			})
+
+
+		}
+	}
+
+})
+
+////FILTRES OBJET////
+///// ROUTE pour récupérer tous les initiatives liés au filtre Objet (quand seul le filtre Objet est sélectionné)
+router.post('/filtres/objets/initiatives', (req, res) => {
+	const object = req.body.object
+	if (object.type == 'categories_objets') {
+		connection.query(`
+	SELECT initiatives.* from initiatives INNER JOIN initiatives_has_categories_objets ON initiatives_has_categories_objets.initiatives_id = initiatives.id WHERE initiatives_has_categories_objets.categories_objets_id = ?`, object.id, (err, results) => {
+			if (err) {
+				res.status(500).send('Error retrieving initiatives related to objets')
+			} else res.status(200).json(results)
+		})
+	}
+
+	else if (object.type == 'categories_intermediaires') {
+		connection.query(`
+			SELECT initiatives.* from initiatives INNER JOIN initiatives_has_categories_intermediaires ON initiatives_has_categories_intermediaires.initiatives_id = initiatives.id WHERE initiatives_has_categories_intermediaires.categories_intermediaires_id = ?`, object.id, (err, results) => {
+			if (err) {
+				res.status(500).send('Error retrieving article related to categories intermediaires')
+			} else res.status(200).json(results)
+		})
+	}
+
+	else if (object.type == 'objets') {
+		connection.query(`
+			SELECT initiatives.* from initiatives INNER JOIN initiatives_has_objets ON initiatives_has_objets.initiatives_id = initiatives.id WHERE initiatives_has_objets.objets_id = ?`, object.id, (err, results) => {
+			if (err) {
+				res.status(500).send('Error retrieving article related to categories intermediaires')
+			} else res.status(200).json(results)
+		})
+	}
+
+})
+
+////FILTRES BESOINS////
+///// ROUTE pour récupérer tous les initiatives liés au filtre Besoin (quand seul le filtre besoin est sélectionné)
+router.post('/filtres/besoins/initiatives', (req, res) => {
+	const besoin = req.body.besoin
+	console.log(besoin)
+	console.log(besoin.type)
+	if (besoin.type == 'besoins') {
+		console.log('salut')
+		connection.query(`
+	SELECT initiatives.* from initiatives INNER JOIN initiatives_has_besoins ON initiatives_has_besoins.initiatives_id = initiatives.id WHERE initiatives_has_besoins.besoins_id = ?`, besoin.id, (err, results) => {
+			if (err) {
+				res.status(500).send('Error retrieving initiatives related to objets')
+			} else res.status(200).json(results)
+		})
+	}
+
+	else if (besoin.type == 'types_activites') {
+		console.log('aurevoir')
+		connection.query(`
+			SELECT initiatives.* from initiatives INNER JOIN initiatives_has_types_activites ON initiatives_has_types_activites.initiatives_id = initiatives.id WHERE initiatives_has_types_activites.types_activites_id = ?`, besoin.id, (err, results) => {
+			if (err) {
+				res.status(500).send('Error retrieving article related to categories intermediaires')
+			} else res.status(200).json(results)
+		})
 	}
 
 })

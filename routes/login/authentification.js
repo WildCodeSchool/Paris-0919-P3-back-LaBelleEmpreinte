@@ -2,11 +2,11 @@ const express = require('express')
 const jwt = require('jsonwebtoken')
 const bcrypt = require('bcryptjs')
 const connection = require('../../conf')
-const verifyToken = require('./verifyToken')
+// const verifyToken = require('./verifyToken')
 
 const router = express.Router()
 
-require('dotenv').config(process.cwd(), '../.env')
+require('dotenv').config(process.cwd(), '../../.env')
 
 const secret = process.env.JWT_SECRET
 
@@ -34,7 +34,7 @@ router.post('/', (req, res)=>{
    * Recuperation de l'utilisateur par son email
    */
 
-  connection.query(`SELECT * FROM person WHERE email = ?`, email, (err, result)=>{
+  connection.query(`SELECT * FROM userbase WHERE email = ?`, email, (err, result)=>{
     if (err) {
       return res.status(500).send(err)
     } else if (!result[0]){ // on verifie la presnec d'un resultat dans la reponse
@@ -55,7 +55,7 @@ router.post('/', (req, res)=>{
      */
 
     const token = jwt.sign(// on utilise sign de jwt pour creer le token
-      {id : result[0].id, name: result[0].firstname, email: result[0].email}, // on rentre les information de l'utilisateur dont on a besoin en front 
+      {id : result[0].id, email: result[0].email}, // on rentre les information de l'utilisateur dont on a besoin en front 
       secret, // correspond a une chaine de caractere permettant de chiffrer la signature du token
       {
         expiresIn: '24h'// fixe la duree de vie du token

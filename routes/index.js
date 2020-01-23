@@ -1,7 +1,7 @@
 const user = require("./user/user")
 const admin = require("./admin/admin")
 const register = require('./login/register')
-const auth = require('./login/authentification')
+const authentification = require('./login/authentification')
 
  
-module.exports = { user, admin, register, auth }
+module.exports = { user, admin, register, authentification }

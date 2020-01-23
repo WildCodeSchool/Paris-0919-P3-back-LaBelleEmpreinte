@@ -52,7 +52,8 @@ router.get('/objets', (req, res) => {
 	})
 })
 
-
+/////////////////////////// FILTRES /////////////////////////////////
+///// FILTRES OBJETS + BESOINS /////////
 ///// ROUTE pour récupérer tous les articles liés aux filtres Objets et Besoins (quand les deux filtres sont sélectionnés)
 router.post('/filtres/articles', (req, res) => {
 	const object = req.body.object
@@ -119,12 +120,7 @@ router.post('/filtres/articles', (req, res) => {
 
 })
 
-
-
-
-
-
-
+////FILTRES OBJET////
 ///// ROUTE pour récupérer tous les articles liés au filtre Objet (quand seul le filtre Objet est sélectionné)
 router.post('/filtres/objets/articles', (req, res) => {
 	const object = req.body.object
@@ -157,6 +153,7 @@ router.post('/filtres/objets/articles', (req, res) => {
 
 })
 
+////FILTRES BESOINS////
 ///// ROUTE pour récupérer tous les articles liés au filtre Besoin (quand seul le filtre besoin est sélectionné)
 router.post('/filtres/besoins/articles', (req, res) => {
 	const besoin = req.body.besoin

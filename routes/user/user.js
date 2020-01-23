@@ -52,6 +52,18 @@ router.get('/objets', (req, res) => {
 	})
 })
 
+//récupérer tous les articles
+router.get('/articles', (req, res) => {
+
+	connection.query(`SELECT * FROM articles`, (err, results) => {
+		if (err) {
+			res.status(500).send('Error retrieving article')
+		} else res.status(200).json(results)
+	})
+})
+
+
+// récupérer les articles selon les filtres sélectionnés //
 /////////////////////////// FILTRES /////////////////////////////////
 ///// FILTRES OBJETS + BESOINS /////////
 ///// ROUTE pour récupérer tous les articles liés aux filtres Objets et Besoins (quand les deux filtres sont sélectionnés)

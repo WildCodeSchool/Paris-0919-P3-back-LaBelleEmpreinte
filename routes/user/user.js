@@ -184,6 +184,16 @@ router.post('/filtres/besoins/articles', (req, res) => {
 
 })
 
+///// ROUTE pour récupérer 3 les derniers articles avant d'appliquer les filtres
+router.get('/lastarticles', (req, res) => {
+	connection.query(`
+	SELECT articles.* FROM articles ORDER BY date DESC LIMIT 3`, (err, results) => {
+		if (err) {
+			res.status(500).send('Error retrieving last articles ordered by date')
+		} else res.status(200).json(results)
+	})
+})
+
 // récupérer le contenu d'un article grâce à son id //
 router.get('/articles/:id', (req, res) => {
 

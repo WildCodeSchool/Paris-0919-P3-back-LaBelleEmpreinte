@@ -170,10 +170,7 @@ router.post('/filtres/objets/articles', (req, res) => {
 ///// ROUTE pour récupérer tous les articles liés au filtre Besoin (quand seul le filtre besoin est sélectionné)
 router.post('/filtres/besoins/articles', (req, res) => {
 	const besoin = req.body.besoin
-	console.log(besoin)
-	console.log(besoin.type)
 	if (besoin.type == 'besoins') {
-		console.log('salut')
 		connection.query(`
 	SELECT articles.* from articles INNER JOIN articles_has_besoins ON articles_has_besoins.articles_id = articles.id WHERE articles_has_besoins.besoins_id = ?`, besoin.id, (err, results) => {
 			if (err) {
@@ -183,7 +180,6 @@ router.post('/filtres/besoins/articles', (req, res) => {
 	}
 
 	else if (besoin.type == 'types_activites') {
-		console.log('aurevoir')
 		connection.query(`
 			SELECT articles.* from articles INNER JOIN articles_has_types_activites ON articles_has_types_activites.articles_id = articles.id WHERE articles_has_types_activites.types_activites_id = ?`, besoin.id, (err, results) => {
 			if (err) {
@@ -232,5 +228,14 @@ router.get('/engagements', (req, res) => {
 	})
 })
 
+// récupérer les articles à partir de mots clés //
+router.post('/recherche', (req, res) => {
+	const keyword = req.body.keyword
+	connection.query(`SELECT * FROM articles WHERE titre LIKE '%${keyword}%' OR contenu LIKE '%${keyword}%'`, (err, results) => {
+		if (err) {
+			res.status(500).send('Error retrieving article')
+		} else res.status(200).json(results)
+	})	
+})
 
 module.exports = router

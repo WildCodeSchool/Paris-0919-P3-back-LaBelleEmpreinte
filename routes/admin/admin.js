@@ -406,7 +406,7 @@ router.post('/articles/create', (req, res) => {
     const tableBinding = (tab1, tab2, tab2value, id) => {
         if (tab2value.length != 0) {
             tab2value.map((elem, index) =>
-                connection.query(`INSERT INTO ${tab1}_has_${tab2} (${tab1}_id, ${tab2}_id) VALUES ( ${id}, ${elem})`, (err, results) => {
+                connection.query(`INSERT INTO ${tab1}_has_${tab2} (${tab1}_id, ${tab2}_id) VALUES ( ${id}, ${elem.id})`, (err, results) => {
                     if (err) {
                         res.status(500).send("l'article n'a pas pu être créé step 2")
                     }

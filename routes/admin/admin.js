@@ -17,6 +17,20 @@ router.get('/', (req, res) => {
 }
 )
 
+// récupérer les initiatives//
+router.get('/initiaves' , (req,res) => {
+    connection.query("SELECT * FROM initiatives" , (err,results)=> {
+        if(err) {
+            res.status(500).send('ça marche pas')
+        } else {
+            res.json(results)
+        }
+
+    })
+}
+    
+)
+
 //  page modifier une initiave responsable //
 // récupérer les infos de l'initiave sur laquelle on a cliqué dans la liste
 router.get('/initiatives_maj/:id', (req, res) => {

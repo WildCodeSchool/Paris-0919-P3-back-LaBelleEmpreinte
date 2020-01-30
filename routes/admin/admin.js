@@ -104,7 +104,7 @@ router.get('/initiatives/:id', (req, res) => {
 // page créer/modifier liste d'init et afficher engagements //
 // récupérer les engagements //
 router.get('/engagements', (req, res) => {
-    connection.query('SELECT * FROM engagements', (err, results) => {
+    connection.query('SELECT * FROM engagements ORDER BY engagements', (err, results) => {
         if (err) {
             res.status(500).send("les engagements n'ont pas pu être trouvés")
         } else {
@@ -187,7 +187,7 @@ router.get('/articles/:id', (req, res) => {
 
 // Page afficher catégorie d'objets //
 router.get('/categories_objets', (req, res) => {
-    connection.query('SELECT * FROM categories_objets', (err, results) => {
+    connection.query('SELECT * FROM categories_objets ORDER BY categorie', (err, results) => {
         if (err) {
             res.status(500).send("les categories_objets n'ont pas pu être trouvés")
         } else {
@@ -211,7 +211,7 @@ router.get('/categories_objets/:id', (req, res) => {
 
 // Page afficher categories_intermediaires //
 router.get('/categories_intermediaires', (req, res) => {
-    connection.query('SELECT * FROM categories_intermediaires', (err, results) => {
+    connection.query('SELECT * FROM categories_intermediaires ORDER BY name', (err, results) => {
         if (err) {
             res.status(500).send("les categories_intermediaires n'ont pas pu être trouvés")
         } else {
@@ -235,7 +235,7 @@ router.get('/categories_intermediaires/:id', (req, res) => {
 
 // Page afficher objets //
 router.get('/objets', (req, res) => {
-    connection.query('SELECT * FROM objets', (err, results) => {
+    connection.query('SELECT * FROM objets ORDER BY name', (err, results) => {
         if (err) {
             res.status(500).send("les objets n'ont pas pu être trouvés")
         } else {
@@ -259,7 +259,7 @@ router.get('/objets/:id', (req, res) => {
 
 // Page afficher besoins //
 router.get('/besoins', (req, res) => {
-    connection.query('SELECT * FROM besoins', (err, results) => {
+    connection.query('SELECT * FROM besoins ORDER BY besoins', (err, results) => {
         if (err) {
             res.status(500).send("les besoins n'ont pas pu être trouvés")
         } else {
@@ -283,7 +283,7 @@ router.get('/besoins/:id', (req, res) => {
 
 // Page afficher types_activites //
 router.get('/types_activites', (req, res) => {
-    connection.query('SELECT * FROM types_activites', (err, results) => {
+    connection.query('SELECT * FROM types_activites ORDER BY types_activites', (err, results) => {
         if (err) {
             res.status(500).send("les types_activites n'ont pas pu être trouvés")
         } else {

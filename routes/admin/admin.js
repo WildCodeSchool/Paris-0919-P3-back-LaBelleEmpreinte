@@ -710,7 +710,7 @@ router.put('/types_activites/modify', (req, res) => {
 // modifier un article informatif 
 //// première partie : modifier le contenu de la table article 
 router.put('/articles_maj/:id', (req, res) => {
-    const putArticles = req.body.article
+    const putArticles = req.body
     const article_id = req.params.id
     console.log(putArticles)
     connection.query(`UPDATE articles SET ? WHERE id = ?`, [putArticles, article_id], (err, results) => {

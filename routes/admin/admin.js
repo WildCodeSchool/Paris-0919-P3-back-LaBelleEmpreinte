@@ -715,7 +715,7 @@ router.put('/articles_maj/:id', (req, res) => {
     console.log(putArticles)
     connection.query(`UPDATE articles SET ? WHERE id = ?`, [putArticles, article_id], (err, results) => {
         if (err) {
-            res.status(500).send("l'aticle n'a pas pu être modifié")
+            res.status(500).send("l'article n'a pas pu être modifié")
         } else {
             res.status(200).send('article modifié')
         }

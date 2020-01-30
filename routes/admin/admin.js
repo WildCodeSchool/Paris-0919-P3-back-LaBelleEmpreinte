@@ -18,7 +18,7 @@ router.get('/', (req, res) => {
 )
 
 // récupérer les initiatives//
-router.get('/initiaves' , (req,res) => {
+router.get('/initiatives' , (req,res) => {
     connection.query("SELECT * FROM initiatives" , (err,results)=> {
         if(err) {
             res.status(500).send('ça marche pas')
@@ -680,7 +680,7 @@ router.put('/objets/modify', (req, res) => {
 /// Modifier un besoins ///
 router.put('/besoins/modify', (req, res) => {
     const besoins = req.body
-    console.log(besoins)
+    console.log(req.body)
     connection.query(`UPDATE besoins SET ? where id = ?`, [besoins, besoins.id], (err, results) => {
         if (err) {
             res.status(500).send("l'besoins n'a pas pu être modifié")
